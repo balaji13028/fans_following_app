@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/services/storage_service.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/presentation/screens/sign_in_screen.dart';
+import 'features/splash/Splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.darkTheme, // Dark theme only
       darkTheme: AppTheme.darkTheme, // Ensure dark theme is used
       themeMode: ThemeMode.dark, // Force dark mode
-      home: const SignInScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
