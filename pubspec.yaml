@@ -14,15 +14,39 @@ dependencies:
   flutter:
     sdk: flutter
 
-
   cupertino_icons: ^1.0.8
+
+  # State Management - Riverpod
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.3
+
+  # Networking - Dio
+  dio: ^5.4.0
+
+  # Local Storage - Hive
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # JSON Serialization
+  json_annotation: ^4.8.1
+
+  # Utilities
+  intl: ^0.19.0
+  
+  # Country/State/City Picker
+  country_picker: ^2.0.26
+  country_state_city_picker: ^1.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-
   flutter_lints: ^5.0.0
+
+  # Code Generation
+  build_runner: ^2.4.7
+  riverpod_generator: ^2.3.9
+  json_serializable: ^6.7.1
 
 
 flutter:
