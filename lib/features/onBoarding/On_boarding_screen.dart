@@ -1,3 +1,4 @@
+import 'package:aa_fans/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import '../auth/presentation/screens/sign_in_screen.dart';
 
@@ -140,7 +141,28 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       const SizedBox(height: 48),
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Navigate to Sign Up
+                          Navigator.of(context).pushReplacement(
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      const SignUpScreen(),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    );
+                                  },
+                              transitionDuration: const Duration(
+                                milliseconds: 300,
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
