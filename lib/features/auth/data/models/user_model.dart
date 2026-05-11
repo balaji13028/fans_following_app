@@ -1,52 +1,67 @@
 class UserModel {
   final String id;
-  final String email;
-  final String name;
+  final String? email;
+  final String? name;
   final String? profileImageUrl;
-  final DateTime createdAt;
+  final String? dob;
+  final String? mobile;
+  final String? facebookId;
+  final String? instagramId;
+  final String? country;
+  final String? state;
+  final String? district;
+  final bool isEventCreator;
+  final DateTime? createdAt;
 
   UserModel({
     required this.id,
-    required this.email,
-    required this.name,
+    this.email,
+    this.name,
     this.profileImageUrl,
-    required this.createdAt,
+    this.dob,
+    this.mobile,
+    this.facebookId,
+    this.instagramId,
+    this.country,
+    this.state,
+    this.district,
+    this.isEventCreator = false,
+    this.createdAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as String,
-      email: json['email'] as String,
-      name: json['name'] as String,
-      profileImageUrl: json['profileImageUrl'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      id: (json['publicId'] ?? json['id'] ?? '') as String,
+      email: json['email'] as String?,
+      name: json['name'] as String?,
+      profileImageUrl: (json['profileImage'] ?? json['profileImageUrl']) as String?,
+      dob: json['dob'] as String?,
+      mobile: (json['mobile'] ?? json['mobileNumber']) as String?,
+      facebookId: json['facebookId'] as String?,
+      instagramId: json['instagramId'] as String?,
+      country: json['country'] as String?,
+      state: json['state'] as String?,
+      district: json['district'] as String?,
+      isEventCreator: (json['isEventCreator'] ?? false) as bool,
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'publicId': id,
       'email': email,
       'name': name,
-      'profileImageUrl': profileImageUrl,
-      'createdAt': createdAt.toIso8601String(),
+      'profileImage': profileImageUrl,
+      'dob': dob,
+      'mobile': mobile,
+      'facebookId': facebookId,
+      'instagramId': instagramId,
+      'country': country,
+      'state': state,
+      'district': district,
+      'isEventCreator': isEventCreator,
+      'createdAt': createdAt?.toIso8601String(),
     };
   }
-
-  UserModel copyWith({
-    String? id,
-    String? email,
-    String? name,
-    String? profileImageUrl,
-    DateTime? createdAt,
-  }) {
-    return UserModel(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      name: name ?? this.name,
-      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
 }
-

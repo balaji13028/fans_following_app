@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/app_constants.dart';
 import 'storage_service.dart';
 
@@ -11,8 +12,12 @@ class ApiService {
     _dio = Dio(
       BaseOptions(
         baseUrl: AppConstants.baseUrl + AppConstants.apiVersion,
-        connectTimeout: const Duration(milliseconds: AppConstants.connectionTimeout),
-        receiveTimeout: const Duration(milliseconds: AppConstants.receiveTimeout),
+        connectTimeout: const Duration(
+          milliseconds: AppConstants.connectionTimeout,
+        ),
+        receiveTimeout: const Duration(
+          milliseconds: AppConstants.receiveTimeout,
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -141,25 +146,29 @@ class _AuthInterceptor extends Interceptor {
 class _LoggingInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    print('🚀 REQUEST[${options.method}] => PATH: ${options.path}');
-    print('Headers: ${options.headers}');
+    debugPrint('🚀 REQUEST[${options.method}] => PATH: ${options.path}');
+    debugPrint('Headers: ${options.headers}');
     if (options.data != null) {
-      print('Data: ${options.data}');
+      debugPrint('Data: ${options.data}');
     }
     handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    print('✅ RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}');
-    print('Data: ${response.data}');
+    debugPrint(
+      '✅ RESPONSE[${response.statusCode}] => PATH: ${response.requestOptions.path}',
+    );
+    debugPrint('Data: ${response.data}');
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    print('❌ ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}');
-    print('Message: ${err.message}');
+    debugPrint(
+      '❌ ERROR[${err.response?.statusCode}] => PATH: ${err.requestOptions.path}',
+    );
+    debugPrint('Message: ${err.message}');
     handler.next(err);
   }
 }
@@ -195,4 +204,3 @@ class _ErrorInterceptor extends Interceptor {
     handler.next(err);
   }
 }
-

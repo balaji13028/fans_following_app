@@ -31,11 +31,6 @@ class AppTheme {
         
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
-        surfaceVariant: AppColors.surfaceVariant,
-        onSurfaceVariant: AppColors.textSecondary,
-        
-        background: AppColors.background,
-        onBackground: AppColors.textPrimary,
         
         outline: AppColors.border,
         outlineVariant: AppColors.borderLight,
@@ -317,15 +312,15 @@ class AppTheme {
 
       // Switch Theme
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.textTertiary;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return AppColors.primary.withOpacity(0.5);
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.primary.withValues(alpha: 0.5);
           }
           return AppColors.surfaceVariant;
         }),
@@ -333,20 +328,20 @@ class AppTheme {
 
       // Checkbox Theme
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return Colors.transparent;
         }),
-        checkColor: MaterialStateProperty.all(AppColors.textPrimary),
+        checkColor: WidgetStateProperty.all(AppColors.textPrimary),
         side: const BorderSide(color: AppColors.border),
       ),
 
       // Radio Theme
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
           }
           return AppColors.textTertiary;

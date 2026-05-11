@@ -29,23 +29,59 @@ class AuthRemoteDataSource {
     }
   }
 
-  /// Sign up user
+  /// Sign up user (Deprecated, use sendOtp instead)
   Future<Map<String, dynamic>> signUp({
     required String email,
     required String password,
     required String name,
   }) async {
     try {
-      final response = await _apiService.post(
-        AppConstants.signUpEndpoint,
-        data: {
-          'email': email,
-          'password': password,
-          'name': name,
-        },
-      );
+      // Just returning mock data since the actual flow uses OTP now
+      return {'message': 'Deprecated'};
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
 
+  /// Send OTP
+  Future<Map<String, dynamic>> sendOtp({required String mobileNumber}) async {
+    try {
+      final response = await _apiService.post(
+        AppConstants.sendOtpEndpoint,
+        data: {'mobileNumber': mobileNumber},
+      );
       return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Verify OTP
+  Future<Map<String, dynamic>> verifyOtp({
+    required String mobileNumber,
+    required String otp,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        AppConstants.verifyOtpEndpoint,
+        data: {'mobileNumber': mobileNumber, 'otp': otp},
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Update User Details
+  Future<void> updateUserDetails({
+    required String userId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      await _apiService.put(
+        '${AppConstants.userDetailsEndpoint}/$userId/details',
+        data: data,
+      );
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -76,13 +112,18 @@ class AuthRemoteDataSource {
     if (error.response != null) {
       // Server responded with error
       final statusCode = error.response!.statusCode;
-      final message = error.response!.data?['message'] ?? 'An error occurred';
+      final responseData = error.response!.data;
+      
+      String message = 'An error occurred';
+      if (responseData is Map<String, dynamic>) {
+        message = responseData['error'] ?? responseData['message'] ?? message;
+      }
 
       switch (statusCode) {
         case 400:
           return 'Bad request: $message';
         case 401:
-          return 'Invalid credentials. Please check your email and password.';
+          return message; // Use server message instead of hardcoded text
         case 403:
           return 'Access forbidden: $message';
         case 404:

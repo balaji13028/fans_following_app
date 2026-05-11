@@ -6,7 +6,7 @@ import '../../../../core/widgets/custom_dropdown.dart';
 import '../../../../core/widgets/date_picker_field.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/country_state_data.dart';
-import '../../../dashboard/presentation/screens/dashboard_screen.dart';
+import 'otp_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -89,36 +89,41 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       setState(() => _isLoading = true);
 
       try {
-        final name = _nameController.text.trim();
-        final email = _emailController.text.trim();
-        final password = _passwordController.text;
-
-        // await ref.read(authNotifierProvider.notifier).signUp(
-        //       email: email,
-        //       password: password,
-        //       name: name,
-        //     );
+        final mobile = _mobileController.text.trim();
+        
+        // 1. Send OTP
+        await ref.read(authNotifierProvider.notifier).sendOtp(mobile);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sign up successful!'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          // Navigate to dashboard and remove all previous routes
-          Navigator.of(context).pushAndRemoveUntil(
+          // 2. Prepare user details
+          final userDetails = {
+            'name': _nameController.text.trim(),
+            'dob': _selectedDateOfBirth?.toIso8601String(),
+            'country': _selectedCountry,
+            'state': _selectedState,
+            'district': _selectedDistrict,
+            'mobile': mobile,
+            'email': _emailController.text.trim(),
+            'instagramId': _instagramController.text.trim(),
+            'facebookId': _facebookController.text.trim(),
+            'twitterId': _twitterController.text.trim(),
+          };
+
+          // 3. Navigate to OTP screen
+          Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => const DashboardScreen(),
+              builder: (context) => OtpScreen(
+                mobileNumber: mobile,
+                userDetails: userDetails,
+              ),
             ),
-            (route) => false, // Remove all previous routes
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text('Failed to send OTP: ${e.toString()}'),
               behavior: SnackBarBehavior.floating,
               backgroundColor: AppColors.error,
             ),

@@ -102,20 +102,39 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
-  /// Sign up
-  Future<void> signUp({
-    required String email,
-    required String password,
-    required String name,
-  }) async {
+  /// Send OTP
+  Future<void> sendOtp(String mobileNumber) async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
       final repository = ref.read(authRepositoryProvider);
-      final user = await repository.signUp(
-        email: email,
-        password: password,
-        name: name,
+      await repository.sendOtp(mobileNumber);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Verify OTP and Update Details
+  Future<void> verifyOtpAndUpdateDetails({
+    required String mobileNumber,
+    required String otp,
+    required Map<String, dynamic> userDetails,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final repository = ref.read(authRepositoryProvider);
+      
+      // 1. Verify OTP to get token
+      final user = await repository.verifyOtp(
+        mobileNumber: mobileNumber,
+        otp: otp,
+      );
+
+      // 2. Update user details
+      await repository.updateUserDetails(
+        userId: user.id,
+        data: userDetails,
       );
 
       state = state.copyWith(
@@ -164,6 +183,28 @@ class AuthNotifier extends _$AuthNotifier {
       state = state.copyWith(user: user);
     } catch (e) {
       state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Update Profile
+  Future<void> updateProfile(Map<String, dynamic> userDetails) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final repository = ref.read(authRepositoryProvider);
+      final userId = state.user?.id;
+      if (userId == null) return;
+
+      await repository.updateUserDetails(
+        userId: userId,
+        data: userDetails,
+      );
+
+      // Refresh to get latest data
+      await refreshUser();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
   }

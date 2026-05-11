@@ -1,5 +1,6 @@
 /// Country, State, and District data
 /// This is a simplified version. For production, consider using an API or comprehensive data source.
+library;
 
 class CountryStateData {
   // Sample countries with states and districts

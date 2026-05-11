@@ -1,64 +1,51 @@
 class EventModel {
   final String id;
-  final String title;
+  final String name;
   final String description;
   final String? imageUrl;
-  final DateTime date;
+  final String date;
+  final String time;
   final String? location;
-  final bool isUpcoming;
+  final int likesCount;
+  final bool isLiked;
 
   EventModel({
     required this.id,
-    required this.title,
+    required this.name,
     required this.description,
     this.imageUrl,
     required this.date,
+    required this.time,
     this.location,
-    required this.isUpcoming,
+    this.likesCount = 0,
+    this.isLiked = false,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
     return EventModel(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      imageUrl: json['imageUrl'] as String?,
-      date: DateTime.parse(json['date'] as String),
+      id: (json['publicId'] ?? json['id'] ?? '') as String,
+      name: (json['name'] ?? json['title'] ?? '') as String,
+      description: (json['description'] ?? '') as String,
+      imageUrl: (json['eventBanner'] ?? json['imageUrl']) as String?,
+      date: (json['date'] ?? '') as String,
+      time: (json['time'] ?? '') as String,
       location: json['location'] as String?,
-      isUpcoming: json['isUpcoming'] as bool? ?? true,
+      likesCount: (json['likesCount'] ?? 0) as int,
+      isLiked: (json['isLiked'] ?? false) as bool,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'title': title,
+      'publicId': id,
+      'name': name,
       'description': description,
-      'imageUrl': imageUrl,
-      'date': date.toIso8601String(),
+      'eventBanner': imageUrl,
+      'date': date,
+      'time': time,
       'location': location,
-      'isUpcoming': isUpcoming,
+      'likesCount': likesCount,
+      'isLiked': isLiked,
     };
   }
-
-  EventModel copyWith({
-    String? id,
-    String? title,
-    String? description,
-    String? imageUrl,
-    DateTime? date,
-    String? location,
-    bool? isUpcoming,
-  }) {
-    return EventModel(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      imageUrl: imageUrl ?? this.imageUrl,
-      date: date ?? this.date,
-      location: location ?? this.location,
-      isUpcoming: isUpcoming ?? this.isUpcoming,
-    );
-  }
 }
-

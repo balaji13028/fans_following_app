@@ -1,46 +1,31 @@
 class SocialLinkModel {
   final String id;
-  final String platform; // Instagram, Twitter, Facebook, YouTube, etc.
+  final String name;
   final String url;
-  final String icon; // Icon name or URL
+  final String? image;
 
   SocialLinkModel({
     required this.id,
-    required this.platform,
+    required this.name,
     required this.url,
-    required this.icon,
+    this.image,
   });
 
   factory SocialLinkModel.fromJson(Map<String, dynamic> json) {
     return SocialLinkModel(
-      id: json['id'] as String,
-      platform: json['platform'] as String,
-      url: json['url'] as String,
-      icon: json['icon'] as String? ?? json['platform'].toString().toLowerCase(),
+      id: (json['publicId'] ?? json['id'] ?? '') as String,
+      name: (json['name'] ?? json['platform'] ?? '') as String,
+      url: (json['url'] ?? '') as String,
+      image: (json['image'] ?? json['icon']) as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'platform': platform,
+      'publicId': id,
+      'name': name,
       'url': url,
-      'icon': icon,
+      'image': image,
     };
   }
-
-  SocialLinkModel copyWith({
-    String? id,
-    String? platform,
-    String? url,
-    String? icon,
-  }) {
-    return SocialLinkModel(
-      id: id ?? this.id,
-      platform: platform ?? this.platform,
-      url: url ?? this.url,
-      icon: icon ?? this.icon,
-    );
-  }
 }
-

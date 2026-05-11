@@ -83,8 +83,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.2),
-                      Colors.black.withOpacity(0.8),
+                      Colors.black.withValues(alpha: 0.2),
+                      Colors.black.withValues(alpha: 0.8),
                       Colors.black,
                       Colors.black,
                     ],

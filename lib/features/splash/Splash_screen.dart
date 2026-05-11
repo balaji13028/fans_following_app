@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../onBoarding/On_boarding_screen.dart';
+import '../onBoarding/on_boarding_screen.dart';
+import '../dashboard/presentation/screens/dashboard_screen.dart';
+import '../../core/services/storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    // 1. Fade in the logo`
+    // 1. Fade in the logo
     await _controller.forward();
 
     // 2. Hold the splash screen for 2 seconds
@@ -45,12 +47,17 @@ class _SplashScreenState extends State<SplashScreen>
     // 3. Fade out the logo
     await _controller.reverse();
 
-    // 4. Navigate to sign-in screen
+    // 4. Navigate based on login status
     if (mounted) {
+      final bool isLoggedIn = StorageService.isLoggedIn;
+      
+      Widget nextScreen = isLoggedIn 
+          ? const DashboardScreen() 
+          : const OnboardingScreen();
+
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const OnboardingScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -76,7 +83,6 @@ class _SplashScreenState extends State<SplashScreen>
           child: Image.asset(
             'assets/images/splash.webp',
             fit: BoxFit.cover,
-            // You can adjust size if needed, assuming the image provides its intrinsic size or takes screen width
           ),
         ),
       ),

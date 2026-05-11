@@ -1,49 +1,201 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:intl/intl.dart';
+import 'user_posts_screen.dart';
+import 'edit_profile_screen.dart';
 
-/// Profile Screen
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user data to ensure we have the latest status (e.g. Event Creator)
+    Future.microtask(() => ref.read(authNotifierProvider.notifier).refreshUser());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authNotifierProvider);
+    final user = authState.user;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: AppColors.surface,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person,
-              size: 64,
-              color: AppColors.primary,
-            ),
-            SizedBox(height: 24),
-            Text(
-              'Profile',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Your profile information\nwill appear here',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 16,
-              ),
-            ),
-          ],
+        backgroundColor: Colors.black,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'Profile',
+          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.orange, size: 22),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: authState.isLoading && user == null
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  // Profile Image
+                  Center(
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: user?.profileImageUrl != null
+                          ? NetworkImage(user!.profileImageUrl!)
+                          : const AssetImage('assets/images/profile_placeholder.png') as ImageProvider,
+                      backgroundColor: Colors.grey[800],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // User Name
+                  Text(
+                    user?.name ?? 'Guest User',
+                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 32),
+                  // Details List
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        _buildDetailRow('Date of birth', user?.dob != null ? _formatDate(user!.dob!) : '-'),
+                        _buildDetailRow('Email Address', user?.email ?? '-'),
+                        _buildDetailRow('Mobile Number', user?.mobile ?? '-', isVerified: true),
+                        _buildDetailRow('Facebook ID', user?.facebookId ?? '-'),
+                        _buildDetailRow('Instagram ID', user?.instagramId ?? '-'),
+                        _buildDetailRow('Country', user?.country ?? 'India'),
+                        _buildDetailRow('State', user?.state ?? '-'),
+                        _buildDetailRow('District', user?.district ?? '-'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // Your Posts Button (Conditional)
+                  if (user?.isEventCreator ?? false)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const UserPostsScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          minimumSize: const Size(double.infinity, 56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Your posts',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.send, color: Colors.blue, size: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  // Log Out Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        ref.read(authNotifierProvider.notifier).signOut();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white24),
+                        minimumSize: const Size(double.infinity, 56),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'log out',
+                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+    );
+  }
+
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('dd/MM/yyyy').format(date);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  Widget _buildDetailRow(String label, String value, {bool isVerified = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ),
+          const Text(
+            ' -  ',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    value.isEmpty ? '-' : value,
+                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (isVerified && value != '-' && value.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Verified',
+                    style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-

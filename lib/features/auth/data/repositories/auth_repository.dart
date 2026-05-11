@@ -48,33 +48,45 @@ class AuthRepository {
     required String password,
     required String name,
   }) async {
+    throw UnimplementedError('Use sendOtp and verifyOtp instead');
+  }
+
+  /// Send OTP
+  Future<Map<String, dynamic>> sendOtp(String mobileNumber) async {
+    return await _remoteDataSource.sendOtp(mobileNumber: mobileNumber);
+  }
+
+  /// Verify OTP and login
+  Future<UserModel> verifyOtp({
+    required String mobileNumber,
+    required String otp,
+  }) async {
     try {
-      // Call API
-      final response = await _remoteDataSource.signUp(
-        email: email,
-        password: password,
-        name: name,
+      final response = await _remoteDataSource.verifyOtp(
+        mobileNumber: mobileNumber,
+        otp: otp,
       );
 
-      // Extract data
       final token = response['token'] as String;
-      final refreshToken = response['refreshToken'] as String?;
       final userData = response['user'] as Map<String, dynamic>;
 
-      // Save to local storage
       await StorageService.saveAuthToken(token);
-      if (refreshToken != null) {
-        await StorageService.saveRefreshToken(refreshToken);
-      }
       await StorageService.saveUserData(userData);
-      await StorageService.saveUserId(userData['id'] as String);
+      await StorageService.saveUserId(userData['publicId'] ?? userData['id'] as String);
       await StorageService.setLoggedIn(true);
 
-      // Return user model
       return UserModel.fromJson(userData);
     } catch (e) {
       rethrow;
     }
+  }
+
+  /// Update User Details
+  Future<void> updateUserDetails({
+    required String userId,
+    required Map<String, dynamic> data,
+  }) async {
+    await _remoteDataSource.updateUserDetails(userId: userId, data: data);
   }
 
   /// Sign out user
