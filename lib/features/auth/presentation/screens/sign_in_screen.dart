@@ -19,6 +19,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(authNotifierProvider);
+    });
+  }
+
+  @override
   void dispose() {
     _mobileController.dispose();
     super.dispose();
@@ -30,8 +38,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       try {
         final mobileNumber = _mobileController.text.trim().replaceAll(' ', '');
-        
-        await ref.read(authNotifierProvider.notifier).sendOtp(mobileNumber);
+
+        final serverOtp = await ref.read(authNotifierProvider.notifier).sendOtp(mobileNumber);
 
         if (mounted) {
           Navigator.push(
@@ -40,6 +48,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               builder: (context) => OtpScreen(
                 mobileNumber: mobileNumber,
                 isLogin: true, // Passing flag to indicate it's a login flow
+                serverOtp: serverOtp,
               ),
             ),
           );
@@ -100,7 +109,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   ),
                 ),
                 const SizedBox(height: 48),
-                
+
                 // Mobile Number Field
                 CustomTextField(
                   labelText: 'Mobile Number',
@@ -111,7 +120,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter mobile number';
                     }
-                    if (!RegExp(r'^[0-9]{10,}$').hasMatch(value.replaceAll(' ', ''))) {
+                    if (!RegExp(
+                      r'^[0-9]{10,}$',
+                    ).hasMatch(value.replaceAll(' ', ''))) {
                       return 'Please enter a valid mobile number';
                     }
                     return null;
@@ -138,7 +149,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.black,
+                            ),
                           ),
                         )
                       : const Text(
@@ -158,10 +171,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   children: [
                     const Text(
                       "Don't have an account? ",
-                      style: TextStyle(
-                        color: Colors.white54,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.white54, fontSize: 14),
                     ),
                     TextButton(
                       onPressed: () {
@@ -192,5 +202,3 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 }
-
-

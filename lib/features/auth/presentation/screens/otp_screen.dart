@@ -9,12 +9,14 @@ class OtpScreen extends ConsumerStatefulWidget {
   final String mobileNumber;
   final Map<String, dynamic>? userDetails;
   final bool isLogin;
+  final String? serverOtp;
 
   const OtpScreen({
     super.key,
     required this.mobileNumber,
     this.userDetails,
     this.isLogin = false,
+    this.serverOtp,
   });
 
   @override
@@ -24,6 +26,24 @@ class OtpScreen extends ConsumerStatefulWidget {
 class _OtpScreenState extends ConsumerState<OtpScreen> {
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.serverOtp != null && widget.serverOtp!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Your OTP is: ${widget.serverOtp}'),
+            duration: const Duration(minutes: 1),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -36,14 +56,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       try {
         if (widget.isLogin) {
           // Handle Login Flow
-          await ref.read(authNotifierProvider.notifier).verifyOtpAndUpdateDetails(
+          await ref
+              .read(authNotifierProvider.notifier)
+              .verifyOtpAndUpdateDetails(
                 mobileNumber: widget.mobileNumber,
                 otp: _otpController.text.trim(),
                 userDetails: {}, // Empty details for login
               );
         } else {
           // Handle Signup Flow
-          await ref.read(authNotifierProvider.notifier).verifyOtpAndUpdateDetails(
+          await ref
+              .read(authNotifierProvider.notifier)
+              .verifyOtpAndUpdateDetails(
                 mobileNumber: widget.mobileNumber,
                 otp: _otpController.text.trim(),
                 userDetails: widget.userDetails ?? {},
@@ -51,16 +75,19 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         }
 
         if (mounted) {
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(widget.isLogin ? 'Sign in successful!' : 'Account created successfully!'),
+              content: Text(
+                widget.isLogin
+                    ? 'Sign in successful!'
+                    : 'Account created successfully!',
+              ),
               behavior: SnackBarBehavior.floating,
             ),
           );
           Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const DashboardScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
             (route) => false,
           );
         }
@@ -140,10 +167,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'A verification code has been sent to\n+91 ** ** **${widget.mobileNumber.length >= 4 ? widget.mobileNumber.substring(widget.mobileNumber.length - 4) : widget.mobileNumber}',
-                  style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white54, fontSize: 14),
                 ),
                 const SizedBox(height: 48),
                 Center(
@@ -173,11 +197,15 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.black,
+                            ),
                           ),
                         )
                       : Text(
-                          widget.isLogin ? 'Sign In' : 'Verify & Create Account',
+                          widget.isLogin
+                              ? 'Sign In'
+                              : 'Verify & Create Account',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -192,4 +220,3 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     );
   }
 }
-

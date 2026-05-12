@@ -4,6 +4,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
 import 'user_posts_screen.dart';
 import 'edit_profile_screen.dart';
+import '../../../auth/presentation/screens/sign_in_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -17,7 +18,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     // Refresh user data to ensure we have the latest status (e.g. Event Creator)
-    Future.microtask(() => ref.read(authNotifierProvider.notifier).refreshUser());
+    Future.microtask(
+      () => ref.read(authNotifierProvider.notifier).refreshUser(),
+    );
   }
 
   @override
@@ -33,7 +36,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         automaticallyImplyLeading: false,
         title: const Text(
           'Profile',
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
@@ -41,7 +48,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
               );
             },
           ),
@@ -60,7 +69,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       radius: 50,
                       backgroundImage: user?.profileImageUrl != null
                           ? NetworkImage(user!.profileImageUrl!)
-                          : const AssetImage('assets/images/profile_placeholder.png') as ImageProvider,
+                          : const AssetImage(
+                                  'assets/images/profile_placeholder.png',
+                                )
+                                as ImageProvider,
                       backgroundColor: Colors.grey[800],
                     ),
                   ),
@@ -68,7 +80,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   // User Name
                   Text(
                     user?.name ?? 'Guest User',
-                    style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   // Details List
@@ -76,14 +92,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
                       children: [
-                        _buildDetailRow('Date of birth', user?.dob != null ? _formatDate(user!.dob!) : '-'),
+                        _buildDetailRow(
+                          'Date of birth',
+                          user?.dob != null ? _formatDate(user!.dob!) : '-',
+                        ),
                         _buildDetailRow('Email Address', user?.email ?? '-'),
-                        _buildDetailRow('Mobile Number', user?.mobile ?? '-', isVerified: true),
+                        _buildDetailRow(
+                          'Mobile Number',
+                          user?.mobile ?? '-',
+                          isVerified: true,
+                        ),
                         _buildDetailRow('Facebook ID', user?.facebookId ?? '-'),
-                        _buildDetailRow('Instagram ID', user?.instagramId ?? '-'),
+                        _buildDetailRow(
+                          'Instagram ID',
+                          user?.instagramId ?? '-',
+                        ),
                         _buildDetailRow('Country', user?.country ?? 'India'),
                         _buildDetailRow('State', user?.state ?? '-'),
-                        _buildDetailRow('District', user?.district ?? '-'),
+                        _buildDetailRow('City', user?.district ?? '-'),
                       ],
                     ),
                   ),
@@ -96,7 +122,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const UserPostsScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const UserPostsScreen(),
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -112,7 +140,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           children: [
                             Text(
                               'Your posts',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             SizedBox(width: 8),
                             Icon(Icons.send, color: Colors.blue, size: 20),
@@ -126,7 +157,75 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: OutlinedButton(
                       onPressed: () {
-                        ref.read(authNotifierProvider.notifier).signOut();
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext dialogContext) {
+                            return AlertDialog(
+                              backgroundColor: Colors.grey[900],
+                              title: const Text(
+                                'Log Out',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              content: const Text(
+                                'Are you sure you want to log out?',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(),
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.of(dialogContext).pop();
+                                    try {
+                                      await ref
+                                          .read(authNotifierProvider.notifier)
+                                          .signOut();
+                                      if (context.mounted) {
+                                        Navigator.of(
+                                          context,
+                                        ).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const SignInScreen(),
+                                          ),
+                                          (route) => false,
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Error logging out: $e',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: const Text(
+                                    'Log Out',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white24),
@@ -137,7 +236,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       child: const Text(
                         'log out',
-                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -157,7 +260,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  Widget _buildDetailRow(String label, String value, {bool isVerified = false}) {
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool isVerified = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -180,7 +287,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Flexible(
                   child: Text(
                     value.isEmpty ? '-' : value,
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -188,7 +299,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(width: 8),
                   const Text(
                     'Verified',
-                    style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ],

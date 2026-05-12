@@ -4,6 +4,8 @@ import 'core/services/storage_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/splash/splash_screen.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -23,6 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'AA Fans',
       theme: AppTheme.darkTheme, // Dark theme only
       darkTheme: AppTheme.darkTheme, // Ensure dark theme is used

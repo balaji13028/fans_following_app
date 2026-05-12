@@ -17,15 +17,12 @@ class AuthRemoteDataSource {
     try {
       final response = await _apiService.post(
         AppConstants.signInEndpoint,
-        data: {
-          'email': email,
-          'password': password,
-        },
+        data: {'email': email, 'password': password},
       );
 
       return response.data as Map<String, dynamic>;
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -38,8 +35,8 @@ class AuthRemoteDataSource {
     try {
       // Just returning mock data since the actual flow uses OTP now
       return {'message': 'Deprecated'};
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -51,8 +48,8 @@ class AuthRemoteDataSource {
         data: {'mobileNumber': mobileNumber},
       );
       return response.data as Map<String, dynamic>;
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -67,8 +64,8 @@ class AuthRemoteDataSource {
         data: {'mobileNumber': mobileNumber, 'otp': otp},
       );
       return response.data as Map<String, dynamic>;
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -82,8 +79,8 @@ class AuthRemoteDataSource {
         '${AppConstants.userDetailsEndpoint}/$userId/details',
         data: data,
       );
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -91,9 +88,9 @@ class AuthRemoteDataSource {
   Future<void> signOut() async {
     try {
       await _apiService.post(AppConstants.signOutEndpoint);
-    } on DioException catch (e) {
+    } catch (e) {
       // Even if API call fails, we should still sign out locally
-      throw _handleError(e);
+      rethrow;
     }
   }
 
@@ -102,45 +99,8 @@ class AuthRemoteDataSource {
     try {
       final response = await _apiService.get(AppConstants.profileEndpoint);
       return UserModel.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Handle API errors
-  String _handleError(DioException error) {
-    if (error.response != null) {
-      // Server responded with error
-      final statusCode = error.response!.statusCode;
-      final responseData = error.response!.data;
-      
-      String message = 'An error occurred';
-      if (responseData is Map<String, dynamic>) {
-        message = responseData['error'] ?? responseData['message'] ?? message;
-      }
-
-      switch (statusCode) {
-        case 400:
-          return 'Bad request: $message';
-        case 401:
-          return message; // Use server message instead of hardcoded text
-        case 403:
-          return 'Access forbidden: $message';
-        case 404:
-          return 'Not found: $message';
-        case 500:
-          return 'Server error. Please try again later.';
-        default:
-          return message;
-      }
-    } else if (error.type == DioExceptionType.connectionTimeout ||
-        error.type == DioExceptionType.receiveTimeout) {
-      return 'Connection timeout. Please check your internet connection.';
-    } else if (error.type == DioExceptionType.connectionError) {
-      return 'No internet connection. Please check your network.';
-    } else {
-      return 'An unexpected error occurred. Please try again.';
+    } catch (e) {
+      rethrow;
     }
   }
 }
-

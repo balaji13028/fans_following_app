@@ -5,7 +5,7 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/custom_dropdown.dart';
 import '../../../../core/widgets/date_picker_field.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/country_state_data.dart';
+import 'package:csc_picker/csc_picker.dart';
 import 'otp_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
@@ -19,14 +19,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final PageController _pageController = PageController();
   final _formKeyStep1 = GlobalKey<FormState>();
   final _formKeyStep2 = GlobalKey<FormState>();
-  
+
   // Step 1 Controllers
   final _nameController = TextEditingController();
   final _mobileController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   DateTime? _selectedDateOfBirth;
-  
+
   // Step 2 Controllers
   String? _selectedCountry;
   String? _selectedState;
@@ -34,7 +34,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _instagramController = TextEditingController();
   final _facebookController = TextEditingController();
   final _twitterController = TextEditingController();
-  
+
   int _currentStep = 0;
   bool _isLoading = false;
 
@@ -59,11 +59,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           const SnackBar(
             content: Text('Please select date of birth'),
             behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error,
           ),
         );
         return;
       }
-      
+
       if (_formKeyStep1.currentState!.validate()) {
         _pageController.nextPage(
           duration: const Duration(milliseconds: 300),
@@ -85,14 +86,27 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Future<void> _handleSignUp() async {
+    if (_selectedCountry == null ||
+        _selectedState == null ||
+        _selectedDistrict == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select Country, State, and District'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     if (_formKeyStep2.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
         final mobile = _mobileController.text.trim();
-        
+
         // 1. Send OTP
-        await ref.read(authNotifierProvider.notifier).sendOtp(mobile);
+        final serverOtp = await ref.read(authNotifierProvider.notifier).sendOtp(mobile);
 
         if (mounted) {
           // 2. Prepare user details
@@ -112,10 +126,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           // 3. Navigate to OTP screen
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => OtpScreen(
-                mobileNumber: mobile,
-                userDetails: userDetails,
-              ),
+              builder: (context) =>
+                  OtpScreen(mobileNumber: mobile, userDetails: userDetails, serverOtp: serverOtp),
             ),
           );
         }
@@ -175,29 +187,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     return null;
   }
 
-
-  // Step 2 Validators
-  String? _validateCountry(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please select country';
-    }
-    return null;
-  }
-
-  String? _validateState(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please select state';
-    }
-    return null;
-  }
-
-  String? _validateDistrict(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please select district';
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -220,7 +209,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(80),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
             child: Column(
               children: [
                 // Step Labels
@@ -308,8 +300,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 20),
-            
+            // const SizedBox(height: 20),
+
             // Name Field
             CustomTextField(
               labelText: 'Name',
@@ -320,7 +312,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               isRequired: true,
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Mobile Number Field
             CustomTextField(
@@ -332,7 +324,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               isRequired: true,
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Email Field
             CustomTextField(
@@ -344,7 +336,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               isRequired: true,
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Password Field
             CustomTextField(
@@ -356,7 +348,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               isRequired: true,
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Date of Birth Field
             DatePickerField(
@@ -370,7 +362,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               isRequired: true,
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
             // Next Button
             ElevatedButton(
@@ -399,15 +391,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   }
 
   Widget _buildStep2() {
-    // Get states and districts based on selected country
-    final states = _selectedCountry != null
-        ? CountryStateData.getStates(_selectedCountry!)
-        : <String>[];
-    
-    final districts = _selectedCountry != null && _selectedState != null
-        ? CountryStateData.getDistricts(_selectedCountry!, _selectedState!)
-        : <String>[];
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Form(
@@ -415,80 +398,64 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 20),
-            
-            // Country Dropdown
-            CustomDropdown<String>(
-              labelText: 'Country',
-              hintText: 'Select country',
-              value: _selectedCountry,
-              items: CountryStateData.getCountries().map((country) {
-                return DropdownMenuItem<String>(
-                  value: country,
-                  child: Text(country),
-                );
-              }).toList(),
-              onChanged: (value) {
+            const Text(
+              'Location Details',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            CSCPicker(
+              showStates: true,
+              showCities: true,
+              flagState: CountryFlag.DISABLE,
+              dropdownDecoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                color: AppColors.surfaceVariant,
+                border: Border.all(color: AppColors.border, width: 1),
+              ),
+              disabledDropdownDecoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                color: AppColors.surfaceVariant.withValues(alpha: 0.5),
+                border: Border.all(color: AppColors.border, width: 1),
+              ),
+              countrySearchPlaceholder: "Search Country",
+              stateSearchPlaceholder: "Search State",
+              citySearchPlaceholder: "Search City",
+              countryDropdownLabel: "Select Country",
+              stateDropdownLabel: "Select State",
+              cityDropdownLabel: "Select City",
+              selectedItemStyle: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+              ),
+              dropdownHeadingStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              dropdownItemStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              dropdownDialogRadius: 8.0,
+              searchBarRadius: 8.0,
+              onCountryChanged: (value) {
                 setState(() {
                   _selectedCountry = value;
-                  _selectedState = null; // Reset state when country changes
-                  _selectedDistrict = null; // Reset district when country changes
                 });
               },
-              validator: (value) => _validateCountry(value),
-              isRequired: true,
+              onStateChanged: (value) {
+                setState(() {
+                  _selectedState = value;
+                });
+              },
+              onCityChanged: (value) {
+                setState(() {
+                  _selectedDistrict = value;
+                });
+              },
             ),
 
-            const SizedBox(height: 24),
-
-            // State Dropdown
-            CustomDropdown<String>(
-              labelText: 'State',
-              hintText: 'Select state',
-              value: _selectedState,
-              items: states.map((state) {
-                return DropdownMenuItem<String>(
-                  value: state,
-                  child: Text(state),
-                );
-              }).toList(),
-              onChanged: _selectedCountry != null
-                  ? (value) {
-                      setState(() {
-                        _selectedState = value;
-                        _selectedDistrict = null; // Reset district when state changes
-                      });
-                    }
-                  : null,
-              enabled: _selectedCountry != null,
-              validator: (value) => _validateState(value),
-              isRequired: true,
-            ),
-
-            const SizedBox(height: 24),
-
-            // District Dropdown
-            CustomDropdown<String>(
-              labelText: 'District',
-              hintText: 'Select district',
-              value: _selectedDistrict,
-              items: districts.map((district) {
-                return DropdownMenuItem<String>(
-                  value: district,
-                  child: Text(district),
-                );
-              }).toList(),
-              onChanged: _selectedState != null
-                  ? (value) {
-                      setState(() => _selectedDistrict = value);
-                    }
-                  : null,
-              enabled: _selectedState != null,
-              validator: (value) => _validateDistrict(value),
-              isRequired: true,
-            ),
-
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Instagram ID (Optional)
             CustomTextField(
@@ -497,7 +464,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               controller: _instagramController,
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Facebook ID (Optional)
             CustomTextField(
@@ -506,7 +473,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               controller: _facebookController,
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Twitter ID (Optional)
             CustomTextField(
@@ -515,7 +482,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               controller: _twitterController,
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
             // Back and Create Buttons
             Row(

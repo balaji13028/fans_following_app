@@ -103,12 +103,17 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   /// Send OTP
-  Future<void> sendOtp(String mobileNumber) async {
+  Future<String?> sendOtp(String mobileNumber) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(authRepositoryProvider);
-      await repository.sendOtp(mobileNumber);
+      final response = await repository.sendOtp(mobileNumber);
       state = state.copyWith(isLoading: false);
+      
+      // Try to extract OTP from response, it could be in 'otp' or 'data.otp'
+      final otp = response['otp']?.toString() ?? 
+                  (response['data'] is Map ? response['data']['otp']?.toString() : null);
+      return otp;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;

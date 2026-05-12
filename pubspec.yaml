@@ -36,9 +36,11 @@ dependencies:
   
   # Country/State/City Picker
   country_picker: ^2.0.26
-  country_state_city_picker: ^1.0.0
   url_launcher: ^6.3.2
   pinput: ^6.0.2
+  csc_picker:
+    path: packages/csc_picker
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -59,6 +61,7 @@ flutter:
   assets:
     - assets/images/
     - assets/logo/
+    - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

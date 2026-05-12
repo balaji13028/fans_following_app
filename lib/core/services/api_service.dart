@@ -1,12 +1,62 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import '../../main.dart';
+import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../constants/app_constants.dart';
 import 'storage_service.dart';
+
+class ApiException implements Exception {
+  final String message;
+  final int? statusCode;
+
+  ApiException(this.message, [this.statusCode]);
+
+  @override
+  String toString() => message;
+}
 
 /// API Service using Dio for HTTP requests
 /// Handles: API calls, authentication, error handling, interceptors
 class ApiService {
   late Dio _dio;
+
+  Exception _handleException(dynamic e) {
+    if (e is DioException) {
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return ApiException('No internet connection. Please check your network.');
+      }
+      
+      if (e.response != null) {
+        final statusCode = e.response!.statusCode;
+        final responseData = e.response!.data;
+        
+        String message = 'An error occurred';
+        if (responseData is Map<String, dynamic>) {
+          message = responseData['error'] ?? responseData['message'] ?? message;
+        }
+
+        switch (statusCode) {
+          case 400:
+            return ApiException('Bad request: $message', statusCode);
+          case 401:
+            return ApiException(message, statusCode);
+          case 403:
+            return ApiException('Access forbidden: $message', statusCode);
+          case 404:
+            return ApiException('Not found: $message', statusCode);
+          case 500:
+            return ApiException('Server error. Please try again later.', statusCode);
+          default:
+            return ApiException(message, statusCode);
+        }
+      }
+      return ApiException(e.message ?? 'An unexpected error occurred');
+    }
+    return ApiException(e.toString());
+  }
 
   ApiService() {
     _dio = Dio(
@@ -49,7 +99,7 @@ class ApiService {
         options: options,
       );
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -68,7 +118,7 @@ class ApiService {
         options: options,
       );
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -87,7 +137,7 @@ class ApiService {
         options: options,
       );
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -106,7 +156,7 @@ class ApiService {
         options: options,
       );
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 
@@ -125,7 +175,7 @@ class ApiService {
         options: options,
       );
     } catch (e) {
-      rethrow;
+      throw _handleException(e);
     }
   }
 }
@@ -180,7 +230,14 @@ class _ErrorInterceptor extends Interceptor {
     // Handle 401 Unauthorized - Clear auth and redirect to login
     if (err.response?.statusCode == 401) {
       StorageService.clearAuthData();
-      // You can add navigation logic here if needed
+      
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const SignInScreen()),
+          (route) => false,
+        );
+      }
     }
 
     // Handle other errors

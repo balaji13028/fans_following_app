@@ -43,14 +43,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.12),
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem(0, Icons.auto_awesome_mosaic_rounded, Icons.auto_awesome_mosaic_outlined, 'Updates'),
-                _buildNavItem(1, Icons.home_rounded, Icons.home_outlined, 'Home', isLarge: true),
-                _buildNavItem(2, Icons.person_rounded, Icons.person_outline_rounded, 'Profile'),
+                _buildNavItem(
+                  0,
+                  Icons.auto_awesome_mosaic_rounded,
+                  Icons.auto_awesome_mosaic_outlined,
+                  'Updates',
+                ),
+                _buildNavItem(
+                  1,
+                  Icons.home_rounded,
+                  Icons.home_outlined,
+                  'Home',
+                  isLarge: true,
+                ),
+                _buildNavItem(
+                  2,
+                  Icons.person_rounded,
+                  Icons.person_outline_rounded,
+                  'Profile',
+                ),
               ],
             ),
           ),
@@ -59,19 +78,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData selectedIcon, IconData unselectedIcon, String label, {bool isLarge = false}) {
+  Widget _buildNavItem(
+    int index,
+    IconData selectedIcon,
+    IconData unselectedIcon,
+    String label, {
+    bool isLarge = false,
+  }) {
     final isSelected = _currentIndex == index;
     final activeColor = AppColors.primary; // The trendy indigo/purple color
-    
+
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(horizontal: isLarge ? 20 : 16, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: isLarge ? 20 : 16,
+          vertical: 10,
+        ),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.15) : Colors.transparent,
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(25),
         ),
         child: Column(

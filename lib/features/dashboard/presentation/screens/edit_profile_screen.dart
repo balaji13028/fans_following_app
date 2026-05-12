@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:csc_picker/csc_picker.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -15,11 +16,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController _dobController;
   late TextEditingController _fbController;
   late TextEditingController _igController;
-  late TextEditingController _countryController;
-  late TextEditingController _stateController;
-  late TextEditingController _districtController;
   late TextEditingController _mobileController;
   late TextEditingController _emailController;
+
+  String? _selectedCountry;
+  String? _selectedState;
+  String? _selectedDistrict;
 
   bool _isLoading = false;
 
@@ -28,12 +30,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.initState();
     final user = ref.read(authNotifierProvider).user;
     _nameController = TextEditingController(text: user?.name);
-    _dobController = TextEditingController(text: user?.dob != null ? _formatDate(user!.dob!) : '');
+    _dobController = TextEditingController(
+      text: user?.dob != null ? _formatDate(user!.dob!) : '',
+    );
     _fbController = TextEditingController(text: user?.facebookId);
     _igController = TextEditingController(text: user?.instagramId);
-    _countryController = TextEditingController(text: user?.country ?? 'India');
-    _stateController = TextEditingController(text: user?.state);
-    _districtController = TextEditingController(text: user?.district);
+    _selectedCountry = user?.country;
+    _selectedState = user?.state;
+    _selectedDistrict = user?.district;
     _mobileController = TextEditingController(text: user?.mobile);
     _emailController = TextEditingController(text: user?.email);
   }
@@ -53,9 +57,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _dobController.dispose();
     _fbController.dispose();
     _igController.dispose();
-    _countryController.dispose();
-    _stateController.dispose();
-    _districtController.dispose();
     _mobileController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -106,24 +107,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'dob': isoDob,
         'facebookId': _fbController.text,
         'instagramId': _igController.text,
-        'country': _countryController.text,
-        'state': _stateController.text,
-        'district': _districtController.text,
+        'country': _selectedCountry,
+        'state': _selectedState,
+        'district': _selectedDistrict,
         'email': _emailController.text,
       });
 
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Profile updated successfully'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -135,7 +139,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: const Text('Edit Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -143,9 +150,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _saveProfile,
-            child: _isLoading 
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.orange, strokeWidth: 2))
-              : const Text('Save', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 16)),
+            child: _isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.orange,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    'Save',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
           ),
           const SizedBox(width: 8),
         ],
@@ -157,26 +178,98 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             _buildTextField('Full Name', _nameController),
             const SizedBox(height: 20),
             _buildTextField(
-              'Date of Birth', 
-              _dobController, 
-              readOnly: true, 
+              'Date of Birth',
+              _dobController,
+              readOnly: true,
               onTap: _selectDate,
               suffixIcon: Icons.calendar_today,
             ),
             const SizedBox(height: 20),
-            _buildTextField('Mobile Number', _mobileController, readOnly: true, labelColor: Colors.white38),
+            _buildTextField(
+              'Mobile Number',
+              _mobileController,
+              readOnly: true,
+              labelColor: Colors.white38,
+            ),
             const SizedBox(height: 20),
-            _buildTextField('Email Address', _emailController, hint: 'example@email.com'),
+            _buildTextField(
+              'Email Address',
+              _emailController,
+              hint: 'example@email.com',
+            ),
             const SizedBox(height: 20),
             _buildTextField('Instagram ID', _igController, hint: '@username'),
             const SizedBox(height: 20),
-            _buildTextField('Facebook ID', _fbController, hint: 'profile link or ID'),
+            _buildTextField(
+              'Facebook ID',
+              _fbController,
+              hint: 'profile link or ID',
+            ),
             const SizedBox(height: 20),
-            _buildTextField('Country', _countryController),
-            const SizedBox(height: 20),
-            _buildTextField('State', _stateController),
-            const SizedBox(height: 20),
-            _buildTextField('District', _districtController),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Location Details',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            CSCPicker(
+              showStates: true,
+              showCities: true,
+              flagState: CountryFlag.DISABLE,
+              dropdownDecoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFF1A1A1A),
+              ),
+              disabledDropdownDecoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFF1A1A1A).withValues(alpha: 0.5),
+              ),
+              countrySearchPlaceholder: "Search Country",
+              stateSearchPlaceholder: "Search State",
+              citySearchPlaceholder: "Search City",
+              countryDropdownLabel: "Select Country",
+              stateDropdownLabel: "Select State",
+              cityDropdownLabel: "Select City",
+              currentCountry: _selectedCountry,
+              currentState: _selectedState,
+              currentCity: _selectedDistrict,
+              selectedItemStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+              ),
+              dropdownHeadingStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              dropdownItemStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+              dropdownDialogRadius: 12.0,
+              searchBarRadius: 12.0,
+              onCountryChanged: (value) {
+                setState(() {
+                  _selectedCountry = value;
+                });
+              },
+              onStateChanged: (value) {
+                setState(() {
+                  _selectedState = value;
+                });
+              },
+              onCityChanged: (value) {
+                setState(() {
+                  _selectedDistrict = value;
+                });
+              },
+            ),
             const SizedBox(height: 40),
           ],
         ),
@@ -185,9 +278,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Widget _buildTextField(
-    String label, 
+    String label,
     TextEditingController controller, {
-    bool readOnly = false, 
+    bool readOnly = false,
     VoidCallback? onTap,
     IconData? suffixIcon,
     String? hint,
@@ -196,13 +289,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: labelColor, fontSize: 13, fontWeight: FontWeight.w500)),
+        Text(
+          label,
+          style: TextStyle(
+            color: labelColor,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           readOnly: readOnly,
           onTap: onTap,
-          style: TextStyle(color: readOnly ? Colors.white38 : Colors.white, fontSize: 15),
+          style: TextStyle(
+            color: readOnly ? Colors.white38 : Colors.white,
+            fontSize: 15,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: Colors.white24),
@@ -212,8 +315,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
-            suffixIcon: suffixIcon != null ? Icon(suffixIcon, color: Colors.white38, size: 18) : null,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            suffixIcon: suffixIcon != null
+                ? Icon(suffixIcon, color: Colors.white38, size: 18)
+                : null,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
           ),
         ),
       ],

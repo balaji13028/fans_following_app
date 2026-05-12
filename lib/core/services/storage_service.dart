@@ -6,7 +6,7 @@ import 'dart:convert';
 class StorageService {
   static const String _authBoxName = 'auth_box';
   static const String _userBoxName = 'user_box';
-  
+
   // Keys for storing data
   static const String _isLoggedInKey = 'is_logged_in';
   static const String _authTokenKey = 'auth_token';
@@ -20,7 +20,7 @@ class StorageService {
   /// Initialize Hive and open boxes
   static Future<void> init() async {
     await Hive.initFlutter();
-    
+
     // Open boxes
     _authBox = await Hive.openBox(_authBoxName);
     _userBox = await Hive.openBox(_userBoxName);
@@ -29,7 +29,8 @@ class StorageService {
   // ==================== Authentication ====================
 
   /// Check if user is logged in
-  static bool get isLoggedIn => _authBox?.get(_isLoggedInKey, defaultValue: false) ?? false;
+  static bool get isLoggedIn =>
+      _authBox?.get(_isLoggedInKey, defaultValue: false) ?? false;
 
   /// Set logged in status
   static Future<void> setLoggedIn(bool value) async {
@@ -71,7 +72,7 @@ class StorageService {
   static Map<String, dynamic>? getUserData() {
     final userDataString = _userBox?.get(_userDataKey);
     if (userDataString == null) return null;
-    
+
     try {
       return jsonDecode(userDataString) as Map<String, dynamic>;
     } catch (e) {
@@ -146,4 +147,3 @@ class StorageService {
     await _userBox?.delete(key);
   }
 }
-
