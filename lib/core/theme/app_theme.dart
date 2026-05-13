@@ -117,8 +117,9 @@ class AppTheme {
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
+        isDense: true,
         fillColor: AppColors.surfaceVariant, // #212121
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8), // 8px border radius
           borderSide: const BorderSide(color: AppColors.border, width: 1), // 1px border
@@ -350,4 +351,3 @@ class AppTheme {
     );
   }
 }
-

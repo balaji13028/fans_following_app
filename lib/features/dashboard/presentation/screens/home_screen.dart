@@ -69,7 +69,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       body: RefreshIndicator(
         color: Colors.white,
-        onRefresh: () => ref.read(dashboardNotifierProvider.notifier).loadDashboard(),
+        onRefresh: () =>
+            ref.read(dashboardNotifierProvider.notifier).loadDashboard(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -145,13 +146,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       ],
                                     ),
                                   ),
-                                    IconButton(
-                                      onPressed: () => ref
-                                        .read(dashboardNotifierProvider.notifier)
-                                        .toggleLike(
-                                          event.id,
-                                          'event',
-                                        ),
+                                  IconButton(
+                                    onPressed: () => ref
+                                        .read(
+                                          dashboardNotifierProvider.notifier,
+                                        )
+                                        .toggleLike(event.id, 'event'),
                                     icon: Icon(
                                       event.isLiked
                                           ? Icons.favorite
@@ -249,11 +249,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             highlightColor: color.withValues(alpha: 0.1),
                             onTap: () async {
                               final uri = Uri.parse(link.url);
-                              if (await canLaunchUrl(uri)) {
+                              try {
                                 await launchUrl(
                                   uri,
                                   mode: LaunchMode.externalApplication,
                                 );
+                              } catch (e) {
+                                debugPrint('Could not launch ${link.url}: $e');
                               }
                             },
                             child: Container(
@@ -373,25 +375,41 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 children: [
                                   GestureDetector(
                                     onTap: () => ref
-                                        .read(dashboardNotifierProvider.notifier)
+                                        .read(
+                                          dashboardNotifierProvider.notifier,
+                                        )
                                         .toggleLike(post.id, 'post'),
                                     child: Icon(
-                                      post.isLiked ? Icons.favorite : Icons.favorite_border,
-                                      color: post.isLiked ? Colors.red : Colors.white60,
+                                      post.isLiked
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: post.isLiked
+                                          ? Colors.red
+                                          : Colors.white60,
                                       size: 18,
                                     ),
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
                                     post.likesCount.toString(),
-                                    style: const TextStyle(color: Colors.white60, fontSize: 13),
+                                    style: const TextStyle(
+                                      color: Colors.white60,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const Spacer(),
-                                  const Icon(Icons.access_time, color: Colors.white60, size: 16),
+                                  const Icon(
+                                    Icons.access_time,
+                                    color: Colors.white60,
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${DateTime.now().difference(post.postedOn).inHours}h ago',
-                                    style: const TextStyle(color: Colors.white60, fontSize: 13),
+                                    style: const TextStyle(
+                                      color: Colors.white60,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ],
                               ),

@@ -41,6 +41,7 @@ dependencies:
   csc_picker:
     path: packages/csc_picker
   cached_network_image: ^3.4.1
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
