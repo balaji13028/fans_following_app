@@ -52,4 +52,30 @@ class PostModel {
       'creatorId': creatorId,
     };
   }
+
+  PostModel copyWith({
+    String? id,
+    String? title,
+    List<String>? tags,
+    String? description,
+    String? imageUrl,
+    int? likesCount,
+    bool? isLiked,
+    DateTime? postedOn,
+    String? status,
+    String? creatorId,
+  }) {
+    return PostModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      tags: tags ?? this.tags,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      likesCount: likesCount ?? this.likesCount,
+      isLiked: isLiked ?? this.isLiked,
+      postedOn: postedOn ?? this.postedOn,
+      status: status ?? this.status,
+      creatorId: creatorId ?? this.creatorId,
+    );
+  }
 }

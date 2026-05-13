@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/home_service.dart';
 import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
+import '../providers/dashboard_provider.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  final HomeService _homeService = HomeService();
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final ScrollController _scrollController = ScrollController();
-
-  List<dynamic> _feedItems = [];
-  int _page = 1;
-  bool _isLoading = false;
-  bool _hasMore = true;
 
   @override
   void initState() {
     super.initState();
-    _loadFeed();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(feedNotifierProvider).items.isEmpty) {
+        ref.read(feedNotifierProvider.notifier).loadFeed();
+      }
+    });
     _scrollController.addListener(_onScroll);
   }
 
@@ -35,39 +35,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      if (!_isLoading && _hasMore) {
-        _loadFeed();
-      }
-    }
-  }
-
-  Future<void> _loadFeed() async {
-    if (_isLoading) return;
-    setState(() => _isLoading = true);
-
-    try {
-      final result = await _homeService.getFeed(page: _page, limit: 15);
-      final List<dynamic> newItems = (result['feed'] as List).map((item) {
-        if (item['feedType'] == 'event') {
-          return EventModel.fromJson(item);
-        } else {
-          return PostModel.fromJson(item);
-        }
-      }).toList();
-
-      setState(() {
-        _feedItems.addAll(newItems);
-        _page++;
-        _hasMore = result['hasMore'] ?? false;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading feed: $e')));
-      }
+      ref.read(feedNotifierProvider.notifier).loadFeed();
     }
   }
 
@@ -90,6 +58,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final feedState = ref.watch(feedNotifierProvider);
+    final feedItems = feedState.items;
+    final hasMore = feedState.hasMore;
+    final isLoading = feedState.isLoading;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -117,23 +90,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ],
       ),
-      body: _feedItems.isEmpty && _isLoading
+      body: feedItems.isEmpty && isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
           : RefreshIndicator(
-              onRefresh: () async {
-                setState(() {
-                  _feedItems = [];
-                  _page = 1;
-                  _hasMore = true;
-                });
-                await _loadFeed();
-              },
+              onRefresh: () => ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true),
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: _feedItems.length + (_hasMore ? 1 : 0),
+                itemCount: feedItems.length + (hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index == _feedItems.length) {
+                  if (index == feedItems.length) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 24.0),
                       child: Center(
@@ -142,9 +108,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     );
                   }
 
-                  final item = _feedItems[index];
+                  final item = feedItems[index];
                   if (item is EventModel) {
                     return _buildNotificationCard(
+                      id: item.id,
+                      type: 'event',
                       title: item.name,
                       hashtags: [
                         '#TFC',
@@ -161,6 +129,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     );
                   } else if (item is PostModel) {
                     return _buildNotificationCard(
+                      id: item.id,
+                      type: 'post',
                       title: item.title,
                       hashtags: item.tags.map((t) => '#$t').toList(),
                       description: item.description,
@@ -180,6 +150,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildNotificationCard({
+    required String id,
+    required String type,
     required String title,
     required List<String> hashtags,
     required String description,
@@ -244,10 +216,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               Row(
                 children: [
-                  Icon(
-                    isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: isLiked ? Colors.red : Colors.white60,
-                    size: 18,
+                  GestureDetector(
+                    onTap: () => ref.read(feedNotifierProvider.notifier).toggleLike(id, type),
+                    child: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : Colors.white60,
+                      size: 18,
+                    ),
                   ),
                   const SizedBox(width: 6),
                   Text(

@@ -32,45 +32,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildFloatingBottomNav() {
-    return Container(
-      height: 75,
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 30),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(40),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(40),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.12),
-                width: 1,
+    return SafeArea(
+      bottom: true,
+      child: Container(
+        height: 75,
+        margin: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(40),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1,
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildNavItem(
-                  0,
-                  Icons.auto_awesome_mosaic_rounded,
-                  Icons.auto_awesome_mosaic_outlined,
-                  'Updates',
-                ),
-                _buildNavItem(
-                  1,
-                  Icons.home_rounded,
-                  Icons.home_outlined,
-                  'Home',
-                  isLarge: true,
-                ),
-                _buildNavItem(
-                  2,
-                  Icons.person_rounded,
-                  Icons.person_outline_rounded,
-                  'Profile',
-                ),
-              ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildNavItem(
+                    0,
+                    Icons.auto_awesome_mosaic_rounded,
+                    Icons.auto_awesome_mosaic_outlined,
+                    'Updates',
+                  ),
+                  _buildNavItem(
+                    1,
+                    Icons.home_rounded,
+                    Icons.home_outlined,
+                    'Home',
+                    isLarge: true,
+                  ),
+                  _buildNavItem(
+                    2,
+                    Icons.person_rounded,
+                    Icons.person_outline_rounded,
+                    'Profile',
+                  ),
+                ],
+              ),
             ),
           ),
         ),

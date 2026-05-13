@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
@@ -17,7 +18,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Refresh user data to ensure we have the latest status (e.g. Event Creator)
+    // Refresh user data to ensure we have the latest status (e.g. Post Creator)
     Future.microtask(
       () => ref.read(authNotifierProvider.notifier).refreshUser(),
     );
@@ -115,7 +116,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   const SizedBox(height: 40),
                   // Your Posts Button (Conditional)
-                  if (user?.isEventCreator ?? false)
+                  if (user?.isPostCreator ?? false)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: ElevatedButton(
@@ -135,18 +136,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            const Text(
                               'Your posts',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.send, color: Colors.blue, size: 20),
+                            const SizedBox(width: 8),
+                            Transform.rotate(
+                              angle: -math.pi / 4,
+                              child: const Icon(
+                                Icons.send,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -244,7 +252,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 120),
                 ],
               ),
             ),

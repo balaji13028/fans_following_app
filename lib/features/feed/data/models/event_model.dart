@@ -48,4 +48,28 @@ class EventModel {
       'isLiked': isLiked,
     };
   }
+
+  EventModel copyWith({
+    String? id,
+    String? name,
+    String? description,
+    String? imageUrl,
+    String? date,
+    String? time,
+    String? location,
+    int? likesCount,
+    bool? isLiked,
+  }) {
+    return EventModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      location: location ?? this.location,
+      likesCount: likesCount ?? this.likesCount,
+      isLiked: isLiked ?? this.isLiked,
+    );
+  }
 }

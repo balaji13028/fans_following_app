@@ -8,51 +8,35 @@ import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../../../feed/data/models/social_link_model.dart';
 
-class HomeScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/dashboard_provider.dart';
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final HomeService _homeService = HomeService();
-  List<EventModel> _events = [];
-  List<PostModel> _posts = [];
-  List<SocialLinkModel> _socialLinks = [];
-  bool _isLoading = true;
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentEventIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    try {
-      final data = await _homeService.getDashboardData();
-      if (mounted) {
-        setState(() {
-          _events = data['events'];
-          _posts = data['posts'];
-          _socialLinks = data['socialMedia'];
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading dashboard: $e')));
-      }
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(dashboardNotifierProvider.notifier).loadDashboard();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final dashboardState = ref.watch(dashboardNotifierProvider);
+    final events = dashboardState.events;
+    final posts = dashboardState.posts;
+    final socialLinks = dashboardState.socialLinks;
+
+    if (dashboardState.isLoading && events.isEmpty) {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(child: CircularProgressIndicator(color: Colors.white)),
@@ -85,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         color: Colors.white,
-        onRefresh: _loadData,
+        onRefresh: () => ref.read(dashboardNotifierProvider.notifier).loadDashboard(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -93,15 +77,15 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const SizedBox(height: 16),
               // Upcoming Events Carousel
-              if (_events.isNotEmpty) ...[
+              if (events.isNotEmpty) ...[
                 SizedBox(
                   height: 220,
                   child: PageView.builder(
-                    itemCount: _events.length,
+                    itemCount: events.length,
                     onPageChanged: (index) =>
                         setState(() => _currentEventIndex = index),
                     itemBuilder: (context, index) {
-                      final event = _events[index];
+                      final event = events[index];
                       return Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
@@ -161,11 +145,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ],
                                     ),
                                   ),
-                                  IconButton(
-                                    onPressed: () => _homeService.toggleLike(
-                                      event.id,
-                                      'event',
-                                    ),
+                                    IconButton(
+                                      onPressed: () => ref
+                                        .read(dashboardNotifierProvider.notifier)
+                                        .toggleLike(
+                                          event.id,
+                                          'event',
+                                        ),
                                     icon: Icon(
                                       event.isLiked
                                           ? Icons.favorite
@@ -188,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    _events.length,
+                    events.length,
                     (index) => Container(
                       width: 8,
                       height: 8,
@@ -222,8 +208,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 60,
                 child: Builder(
                   builder: (context) {
-                    final displayLinks = _socialLinks.isNotEmpty
-                        ? _socialLinks
+                    final displayLinks = socialLinks.isNotEmpty
+                        ? socialLinks
                         : [
                             SocialLinkModel(
                               id: '1',
@@ -335,9 +321,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: _posts.length,
+                itemCount: posts.length,
                 itemBuilder: (context, index) {
-                  final post = _posts[index];
+                  final post = posts[index];
                   return Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -381,6 +367,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => ref
+                                        .read(dashboardNotifierProvider.notifier)
+                                        .toggleLike(post.id, 'post'),
+                                    child: Icon(
+                                      post.isLiked ? Icons.favorite : Icons.favorite_border,
+                                      color: post.isLiked ? Colors.red : Colors.white60,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    post.likesCount.toString(),
+                                    style: const TextStyle(color: Colors.white60, fontSize: 13),
+                                  ),
+                                  const Spacer(),
+                                  const Icon(Icons.access_time, color: Colors.white60, size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${DateTime.now().difference(post.postedOn).inHours}h ago',
+                                    style: const TextStyle(color: Colors.white60, fontSize: 13),
+                                  ),
+                                ],
                               ),
                             ],
                           ),

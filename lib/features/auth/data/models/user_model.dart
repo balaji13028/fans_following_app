@@ -10,7 +10,7 @@ class UserModel {
   final String? country;
   final String? state;
   final String? district;
-  final bool isEventCreator;
+  final bool isPostCreator;
   final DateTime? createdAt;
 
   UserModel({
@@ -25,7 +25,7 @@ class UserModel {
     this.country,
     this.state,
     this.district,
-    this.isEventCreator = false,
+    this.isPostCreator = false,
     this.createdAt,
   });
 
@@ -42,7 +42,7 @@ class UserModel {
       country: json['country'] as String?,
       state: json['state'] as String?,
       district: json['district'] as String?,
-      isEventCreator: (json['isEventCreator'] ?? false) as bool,
+      isPostCreator: (json['isPostCreator'] ?? false) as bool,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
     );
   }
@@ -60,7 +60,7 @@ class UserModel {
       'country': country,
       'state': state,
       'district': district,
-      'isEventCreator': isEventCreator,
+      'isPostCreator': isPostCreator,
       'createdAt': createdAt?.toIso8601String(),
     };
   }
