@@ -30,19 +30,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.serverOtp != null && widget.serverOtp!.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Your OTP is: ${widget.serverOtp}'),
-            duration: const Duration(minutes: 1),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.primary,
-          ),
-        );
-      });
-    }
   }
 
   @override

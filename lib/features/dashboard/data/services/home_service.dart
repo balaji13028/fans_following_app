@@ -76,7 +76,8 @@ class HomeService {
 
   Future<PostModel> createPost(Map<String, dynamic> postData) async {
     try {
-      final response = await _apiService.post('/mobile/posts', data: postData);
+      final formData = await _apiService.createFormData(postData);
+      final response = await _apiService.post('/mobile/posts', data: formData);
       if (response.statusCode == 201) {
         return PostModel.fromJson(response.data);
       }

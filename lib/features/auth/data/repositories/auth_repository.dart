@@ -10,32 +10,26 @@ class AuthRepository {
   AuthRepository(this._remoteDataSource);
 
   /// Sign in user
-  Future<UserModel> signIn({
-    required String email,
+  Future<UserModel> userLogin({
+    required String mobileNumber,
     required String password,
   }) async {
     try {
-      // Call API
-      final response = await _remoteDataSource.signIn(
-        email: email,
+      final response = await _remoteDataSource.userLogin(
+        mobileNumber: mobileNumber,
         password: password,
       );
 
-      // Extract data
       final token = response['token'] as String;
-      final refreshToken = response['refreshToken'] as String?;
       final userData = response['user'] as Map<String, dynamic>;
 
-      // Save to local storage
       await StorageService.saveAuthToken(token);
-      if (refreshToken != null) {
-        await StorageService.saveRefreshToken(refreshToken);
-      }
       await StorageService.saveUserData(userData);
-      await StorageService.saveUserId(userData['id'] as String);
+      await StorageService.saveUserId(
+        userData['publicId'] ?? userData['id'] as String,
+      );
       await StorageService.setLoggedIn(true);
 
-      // Return user model
       return UserModel.fromJson(userData);
     } catch (e) {
       rethrow;
@@ -60,11 +54,15 @@ class AuthRepository {
   Future<UserModel> verifyOtp({
     required String mobileNumber,
     required String otp,
+    String? fcmToken,
+    String? password,
   }) async {
     try {
       final response = await _remoteDataSource.verifyOtp(
         mobileNumber: mobileNumber,
         otp: otp,
+        fcmToken: fcmToken,
+        password: password,
       );
 
       final token = response['token'] as String;
@@ -72,13 +70,20 @@ class AuthRepository {
 
       await StorageService.saveAuthToken(token);
       await StorageService.saveUserData(userData);
-      await StorageService.saveUserId(userData['publicId'] ?? userData['id'] as String);
+      await StorageService.saveUserId(
+        userData['publicId'] ?? userData['id'] as String,
+      );
       await StorageService.setLoggedIn(true);
 
       return UserModel.fromJson(userData);
     } catch (e) {
       rethrow;
     }
+  }
+
+  /// Register FCM Token
+  Future<void> registerFcmToken(String fcmToken) async {
+    await _remoteDataSource.registerFcmToken(fcmToken);
   }
 
   /// Update User Details
@@ -137,5 +142,28 @@ class AuthRepository {
       rethrow;
     }
   }
-}
 
+  /// Upload profile image
+  Future<String> uploadProfileImage({
+    required String userId,
+    required String filePath,
+  }) async {
+    try {
+      final imageUrl = await _remoteDataSource.uploadProfileImage(
+        userId: userId,
+        filePath: filePath,
+      );
+
+      // Update local user data
+      final userData = StorageService.getUserData();
+      if (userData != null) {
+        userData['profileImage'] = imageUrl;
+        await StorageService.saveUserData(userData);
+      }
+
+      return imageUrl;
+    } catch (e) {
+      rethrow;
+    }
+  }
+}

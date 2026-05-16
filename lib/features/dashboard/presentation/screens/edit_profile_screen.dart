@@ -221,7 +221,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             CSCPicker(
               showStates: true,
               showCities: true,
-              flagState: CountryFlag.DISABLE,
+              flagState: CountryFlag.disable,
               dropdownDecoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: const Color(0xFF1A1A1A),

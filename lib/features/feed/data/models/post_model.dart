@@ -4,6 +4,7 @@ class PostModel {
   final List<String> tags;
   final String description;
   final String? imageUrl;
+  final String? videoUrl;
   final int likesCount;
   final bool isLiked;
   final DateTime postedOn;
@@ -16,6 +17,7 @@ class PostModel {
     this.tags = const [],
     required this.description,
     this.imageUrl,
+    this.videoUrl,
     required this.likesCount,
     required this.isLiked,
     required this.postedOn,
@@ -30,9 +32,12 @@ class PostModel {
       tags: List<String>.from(json['tags'] ?? []),
       description: (json['description'] ?? json['content'] ?? '') as String,
       imageUrl: (json['image'] ?? json['imageUrl']) as String?,
+      videoUrl: (json['video'] ?? json['videoUrl']) as String?,
       likesCount: (json['likesCount'] ?? 0) as int,
       isLiked: (json['isLiked'] ?? false) as bool,
-      postedOn: DateTime.parse(json['postedOn'] ?? json['createdAt'] ?? DateTime.now().toIso8601String()),
+      postedOn: DateTime.parse(
+        json['postedOn'] ?? json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
       status: (json['status'] ?? 'approved') as String,
       creatorId: json['creatorId'] as String?,
     );
@@ -45,6 +50,7 @@ class PostModel {
       'tags': tags,
       'description': description,
       'image': imageUrl,
+      'video': videoUrl,
       'likesCount': likesCount,
       'isLiked': isLiked,
       'postedOn': postedOn.toIso8601String(),
@@ -59,6 +65,7 @@ class PostModel {
     List<String>? tags,
     String? description,
     String? imageUrl,
+    String? videoUrl,
     int? likesCount,
     bool? isLiked,
     DateTime? postedOn,
@@ -71,6 +78,7 @@ class PostModel {
       tags: tags ?? this.tags,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
+      videoUrl: videoUrl ?? this.videoUrl,
       likesCount: likesCount ?? this.likesCount,
       isLiked: isLiked ?? this.isLiked,
       postedOn: postedOn ?? this.postedOn,

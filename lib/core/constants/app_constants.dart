@@ -6,11 +6,12 @@ class AppConstants {
   // API Endpoints (Update with your actual API base URL)
   // Use 10.0.2.2 for Android Emulator, or 127.0.0.1 for iOS Simulator connecting to localhost
   static const String baseUrl = 'https://api.aafansassociation.com';
-  // static const String baseUrl = 'http://localhost:4000';
+  // static const String baseUrl = 'http://192.168.1.7:4000';
   static const String apiVersion = '/api/v1';
 
   // Authentication
   static const String signInEndpoint = '/auth/user/login';
+  static const String userLoginEndpoint = '/auth/user/login';
   static const String sendOtpEndpoint = '/auth/user/send-otp';
   static const String verifyOtpEndpoint = '/auth/user/verify-otp';
   static const String signOutEndpoint = '/auth/signout';

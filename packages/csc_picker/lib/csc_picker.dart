@@ -8,512 +8,512 @@ import 'model/select_status_model.dart';
 
 enum Layout { vertical, horizontal }
 
-enum CountryFlag { SHOW_IN_DROP_DOWN_ONLY, ENABLE, DISABLE }
+enum CountryFlag { showInDropDownOnly, enable, disable }
 
 enum CscCountry {
-  Afghanistan,
-  Aland_Islands,
-  Albania,
-  Algeria,
-  American_Samoa,
-  Andorra,
-  Angola,
-  Anguilla,
-  Antarctica,
-  Antigua_And_Barbuda,
-  Argentina,
-  Armenia,
-  Aruba,
-  Australia,
-  Austria,
-  Azerbaijan,
-  Bahamas_The,
-  Bahrain,
-  Bangladesh,
-  Barbados,
-  Belarus,
-  Belgium,
-  Belize,
-  Benin,
-  Bermuda,
-  Bhutan,
-  Bolivia,
-  Bosnia_and_Herzegovina,
-  Botswana,
-  Bouvet_Island,
-  Brazil,
-  British_Indian_Ocean_Territory,
-  Brunei,
-  Bulgaria,
-  Burkina_Faso,
-  Burundi,
-  Cambodia,
-  Cameroon,
-  Canada,
-  Cape_Verde,
-  Cayman_Islands,
-  Central_African_Republic,
-  Chad,
-  Chile,
-  China,
-  Christmas_Island,
-  Cocos_Keeling_Islands,
-  Colombia,
-  Comoros,
-  Congo,
-  Congo_The_Democratic_Republic_Of_The,
-  Cook_Islands,
-  Costa_Rica,
-  Cote_D_Ivoire_Ivory_Coast,
-  Croatia_Hrvatska,
-  Cuba,
-  Cyprus,
-  Czech_Republic,
-  Denmark,
-  Djibouti,
-  Dominica,
-  Dominican_Republic,
-  East_Timor,
-  Ecuador,
-  Egypt,
-  El_Salvador,
-  Equatorial_Guinea,
-  Eritrea,
-  Estonia,
-  Ethiopia,
-  Falkland_Islands,
-  Faroe_Islands,
-  Fiji_Islands,
-  Finland,
-  France,
-  French_Guiana,
-  French_Polynesia,
-  French_Southern_Territories,
-  Gabon,
-  Gambia_The,
-  Georgia,
-  Germany,
-  Ghana,
-  Gibraltar,
-  Greece,
-  Greenland,
-  Grenada,
-  Guadeloupe,
-  Guam,
-  Guatemala,
-  Guernsey_and_Alderney,
-  Guinea,
-  Guinea_Bissau,
-  Guyana,
-  Haiti,
-  Heard_Island_and_McDonald_Islands,
-  Honduras,
-  Hong_Kong_S_A_R,
-  Hungary,
-  Iceland,
-  India,
-  Indonesia,
-  Iran,
-  Iraq,
-  Ireland,
-  Israel,
-  Italy,
-  Jamaica,
-  Japan,
-  Jersey,
-  Jordan,
-  Kazakhstan,
-  Kenya,
-  Kiribati,
-  Korea_North,
-  Korea_South,
-  Kuwait,
-  Kyrgyzstan,
-  Laos,
-  Latvia,
-  Lebanon,
-  Lesotho,
-  Liberia,
-  Libya,
-  Liechtenstein,
-  Lithuania,
-  Luxembourg,
-  Macau_S_A_R,
-  Macedonia,
-  Madagascar,
-  Malawi,
-  Malaysia,
-  Maldives,
-  Mali,
-  Malta,
-  Man_Isle_of,
-  Marshall_Islands,
-  Martinique,
-  Mauritania,
-  Mauritius,
-  Mayotte,
-  Mexico,
-  Micronesia,
-  Moldova,
-  Monaco,
-  Mongolia,
-  Montenegro,
-  Montserrat,
-  Morocco,
-  Mozambique,
-  Myanmar,
-  Namibia,
-  Nauru,
-  Nepal,
-  Bonaire_Sint_Eustatius_and_Saba,
-  Netherlands_The,
-  New_Caledonia,
-  New_Zealand,
-  Nicaragua,
-  Niger,
-  Nigeria,
-  Niue,
-  Norfolk_Island,
-  Northern_Mariana_Islands,
-  Norway,
-  Oman,
-  Pakistan,
-  Palau,
-  Palestinian_Territory_Occupied,
-  Panama,
-  Papua_new_Guinea,
-  Paraguay,
-  Peru,
-  Philippines,
-  Pitcairn_Island,
-  Poland,
-  Portugal,
-  Puerto_Rico,
-  Qatar,
-  Reunion,
-  Romania,
-  Russia,
-  Rwanda,
-  Saint_Helena,
-  Saint_Kitts_And_Nevis,
-  Saint_Lucia,
-  Saint_Pierre_and_Miquelon,
-  Saint_Vincent_And_The_Grenadines,
-  Saint_Barthelemy,
-  Saint_Martin_French_part,
-  Samoa,
-  San_Marino,
-  Sao_Tome_and_Principe,
-  Saudi_Arabia,
-  Senegal,
-  Serbia,
-  Seychelles,
-  Sierra_Leone,
-  Singapore,
-  Slovakia,
-  Slovenia,
-  Solomon_Islands,
-  Somalia,
-  South_Africa,
-  South_Georgia,
-  South_Sudan,
-  Spain,
-  Sri_Lanka,
-  Sudan,
-  Suriname,
-  Svalbard_And_Jan_Mayen_Islands,
-  Swaziland,
-  Sweden,
-  Switzerland,
-  Syria,
-  Taiwan,
-  Tajikistan,
-  Tanzania,
-  Thailand,
-  Togo,
-  Tokelau,
-  Tonga,
-  Trinidad_And_Tobago,
-  Tunisia,
-  Turkey,
-  Turkmenistan,
-  Turks_And_Caicos_Islands,
-  Tuvalu,
-  Uganda,
-  Ukraine,
-  United_Arab_Emirates,
-  United_Kingdom,
-  United_States,
-  United_States_Minor_Outlying_Islands,
-  Uruguay,
-  Uzbekistan,
-  Vanuatu,
-  Vatican_City_State_Holy_See,
-  Venezuela,
-  Vietnam,
-  Virgin_Islands_British,
-  Virgin_Islands_US,
-  Wallis_And_Futuna_Islands,
-  Western_Sahara,
-  Yemen,
-  Zambia,
-  Zimbabwe,
-  Kosovo,
-  Curacao,
-  Sint_Maarten_Dutch_part
+  afghanistan,
+  alandIslands,
+  albania,
+  algeria,
+  americanSamoa,
+  andorra,
+  angola,
+  anguilla,
+  antarctica,
+  antiguaAndBarbuda,
+  argentina,
+  armenia,
+  aruba,
+  australia,
+  austria,
+  azerbaijan,
+  bahamasThe,
+  bahrain,
+  bangladesh,
+  barbados,
+  belarus,
+  belgium,
+  belize,
+  benin,
+  bermuda,
+  bhutan,
+  bolivia,
+  bosniaAndHerzegovina,
+  botswana,
+  bouvetIsland,
+  brazil,
+  britishIndianOceanTerritory,
+  brunei,
+  bulgaria,
+  burkinaFaso,
+  burundi,
+  cambodia,
+  cameroon,
+  canada,
+  capeVerde,
+  caymanIslands,
+  centralAfricanRepublic,
+  chad,
+  chile,
+  china,
+  christmasIsland,
+  cocosKeelingIslands,
+  colombia,
+  comoros,
+  congo,
+  congoTheDemocraticRepublicOfThe,
+  cookIslands,
+  costaRica,
+  coteDIvoireIvoryCoast,
+  croatiaHrvatska,
+  cuba,
+  cyprus,
+  czechRepublic,
+  denmark,
+  djibouti,
+  dominica,
+  dominicanRepublic,
+  eastTimor,
+  ecuador,
+  egypt,
+  elSalvador,
+  equatorialGuinea,
+  eritrea,
+  estonia,
+  ethiopia,
+  falklandIslands,
+  faroeIslands,
+  fijiIslands,
+  finland,
+  france,
+  frenchGuiana,
+  frenchPolynesia,
+  frenchSouthernTerritories,
+  gabon,
+  gambiaThe,
+  georgia,
+  germany,
+  ghana,
+  gibraltar,
+  greece,
+  greenland,
+  grenada,
+  guadeloupe,
+  guam,
+  guatemala,
+  guernseyAndAlderney,
+  guinea,
+  guineaBissau,
+  guyana,
+  haiti,
+  heardIslandAndMcDonaldIslands,
+  honduras,
+  hongKongSAR,
+  hungary,
+  iceland,
+  india,
+  indonesia,
+  iran,
+  iraq,
+  ireland,
+  israel,
+  italy,
+  jamaica,
+  japan,
+  jersey,
+  jordan,
+  kazakhstan,
+  kenya,
+  kiribati,
+  koreaNorth,
+  koreaSouth,
+  kuwait,
+  kyrgyzstan,
+  laos,
+  latvia,
+  lebanon,
+  lesotho,
+  liberia,
+  libya,
+  liechtenstein,
+  lithuania,
+  luxembourg,
+  macauSAR,
+  macedonia,
+  madagascar,
+  malawi,
+  malaysia,
+  maldives,
+  mali,
+  malta,
+  manIsleOf,
+  marshallIslands,
+  martinique,
+  mauritania,
+  mauritius,
+  mayotte,
+  mexico,
+  micronesia,
+  moldova,
+  monaco,
+  mongolia,
+  montenegro,
+  montserrat,
+  morocco,
+  mozambique,
+  myanmar,
+  namibia,
+  nauru,
+  nepal,
+  bonaireSintEustatiusAndSaba,
+  netherlandsThe,
+  newCaledonia,
+  newZealand,
+  nicaragua,
+  niger,
+  nigeria,
+  niue,
+  norfolkIsland,
+  northernMarianaIslands,
+  norway,
+  oman,
+  pakistan,
+  palau,
+  palestinianTerritoryOccupied,
+  panama,
+  papuaNewGuinea,
+  paraguay,
+  peru,
+  philippines,
+  pitcairnIsland,
+  poland,
+  portugal,
+  puertoRico,
+  qatar,
+  reunion,
+  romania,
+  russia,
+  rwanda,
+  saintHelena,
+  saintKittsAndNevis,
+  saintLucia,
+  saintPierreAndMiquelon,
+  saintVincentAndTheGrenadines,
+  saintBarthelemy,
+  saintMartinFrenchPart,
+  samoa,
+  sanMarino,
+  saoTomeAndPrincipe,
+  saudiArabia,
+  senegal,
+  serbia,
+  seychelles,
+  sierraLeone,
+  singapore,
+  slovakia,
+  slovenia,
+  solomonIslands,
+  somalia,
+  southAfrica,
+  southGeorgia,
+  southSudan,
+  spain,
+  sriLanka,
+  sudan,
+  suriname,
+  svalbardAndJanMayenIslands,
+  swaziland,
+  sweden,
+  switzerland,
+  syria,
+  taiwan,
+  tajikistan,
+  tanzania,
+  thailand,
+  togo,
+  tokelau,
+  tonga,
+  trinidadAndTobago,
+  tunisia,
+  turkey,
+  turkmenistan,
+  turksAndCaicosIslands,
+  tuvalu,
+  uganda,
+  ukraine,
+  unitedArabEmirates,
+  unitedKingdom,
+  unitedStates,
+  unitedStatesMinorOutlyingIslands,
+  uruguay,
+  uzbekistan,
+  vanuatu,
+  vaticanCityStateHolySee,
+  venezuela,
+  vietnam,
+  virginIslandsBritish,
+  virginIslandsUS,
+  wallisAndFutunaIslands,
+  westernSahara,
+  yemen,
+  zambia,
+  zimbabwe,
+  kosovo,
+  curacao,
+  sintMaartenDutchPart
 }
 
-const Map<CscCountry, int> Countries = {
-  CscCountry.Afghanistan: 0,
-  CscCountry.Aland_Islands: 1,
-  CscCountry.Albania: 2,
-  CscCountry.Algeria: 3,
-  CscCountry.American_Samoa: 4,
-  CscCountry.Andorra: 5,
-  CscCountry.Angola: 6,
-  CscCountry.Anguilla: 7,
-  CscCountry.Antarctica: 8,
-  CscCountry.Antigua_And_Barbuda: 9,
-  CscCountry.Argentina: 10,
-  CscCountry.Armenia: 11,
-  CscCountry.Aruba: 12,
-  CscCountry.Australia: 13,
-  CscCountry.Austria: 14,
-  CscCountry.Azerbaijan: 15,
-  CscCountry.Bahamas_The: 16,
-  CscCountry.Bahrain: 17,
-  CscCountry.Bangladesh: 18,
-  CscCountry.Barbados: 19,
-  CscCountry.Belarus: 20,
-  CscCountry.Belgium: 21,
-  CscCountry.Belize: 22,
-  CscCountry.Benin: 23,
-  CscCountry.Bermuda: 24,
-  CscCountry.Bhutan: 25,
-  CscCountry.Bolivia: 26,
-  CscCountry.Bosnia_and_Herzegovina: 27,
-  CscCountry.Botswana: 28,
-  CscCountry.Bouvet_Island: 29,
-  CscCountry.Brazil: 30,
-  CscCountry.British_Indian_Ocean_Territory: 31,
-  CscCountry.Brunei: 32,
-  CscCountry.Bulgaria: 33,
-  CscCountry.Burkina_Faso: 34,
-  CscCountry.Burundi: 35,
-  CscCountry.Cambodia: 36,
-  CscCountry.Cameroon: 37,
-  CscCountry.Canada: 38,
-  CscCountry.Cape_Verde: 39,
-  CscCountry.Cayman_Islands: 40,
-  CscCountry.Central_African_Republic: 41,
-  CscCountry.Chad: 42,
-  CscCountry.Chile: 43,
-  CscCountry.China: 44,
-  CscCountry.Christmas_Island: 45,
-  CscCountry.Cocos_Keeling_Islands: 46,
-  CscCountry.Colombia: 47,
-  CscCountry.Comoros: 48,
-  CscCountry.Congo: 49,
-  CscCountry.Congo_The_Democratic_Republic_Of_The: 50,
-  CscCountry.Cook_Islands: 51,
-  CscCountry.Costa_Rica: 52,
-  CscCountry.Cote_D_Ivoire_Ivory_Coast: 53,
-  CscCountry.Croatia_Hrvatska: 54,
-  CscCountry.Cuba: 55,
-  CscCountry.Cyprus: 56,
-  CscCountry.Czech_Republic: 57,
-  CscCountry.Denmark: 58,
-  CscCountry.Djibouti: 59,
-  CscCountry.Dominica: 60,
-  CscCountry.Dominican_Republic: 61,
-  CscCountry.East_Timor: 62,
-  CscCountry.Ecuador: 63,
-  CscCountry.Egypt: 64,
-  CscCountry.El_Salvador: 65,
-  CscCountry.Equatorial_Guinea: 66,
-  CscCountry.Eritrea: 67,
-  CscCountry.Estonia: 68,
-  CscCountry.Ethiopia: 69,
-  CscCountry.Falkland_Islands: 70,
-  CscCountry.Faroe_Islands: 71,
-  CscCountry.Fiji_Islands: 72,
-  CscCountry.Finland: 73,
-  CscCountry.France: 74,
-  CscCountry.French_Guiana: 75,
-  CscCountry.French_Polynesia: 76,
-  CscCountry.French_Southern_Territories: 77,
-  CscCountry.Gabon: 78,
-  CscCountry.Gambia_The: 79,
-  CscCountry.Georgia: 80,
-  CscCountry.Germany: 81,
-  CscCountry.Ghana: 82,
-  CscCountry.Gibraltar: 83,
-  CscCountry.Greece: 84,
-  CscCountry.Greenland: 85,
-  CscCountry.Grenada: 86,
-  CscCountry.Guadeloupe: 87,
-  CscCountry.Guam: 88,
-  CscCountry.Guatemala: 89,
-  CscCountry.Guernsey_and_Alderney: 90,
-  CscCountry.Guinea: 91,
-  CscCountry.Guinea_Bissau: 92,
-  CscCountry.Guyana: 93,
-  CscCountry.Haiti: 94,
-  CscCountry.Heard_Island_and_McDonald_Islands: 95,
-  CscCountry.Honduras: 96,
-  CscCountry.Hong_Kong_S_A_R: 97,
-  CscCountry.Hungary: 98,
-  CscCountry.Iceland: 99,
-  CscCountry.India: 100,
-  CscCountry.Indonesia: 101,
-  CscCountry.Iran: 102,
-  CscCountry.Iraq: 103,
-  CscCountry.Ireland: 104,
-  CscCountry.Israel: 105,
-  CscCountry.Italy: 106,
-  CscCountry.Jamaica: 107,
-  CscCountry.Japan: 108,
-  CscCountry.Jersey: 109,
-  CscCountry.Jordan: 110,
-  CscCountry.Kazakhstan: 111,
-  CscCountry.Kenya: 112,
-  CscCountry.Kiribati: 113,
-  CscCountry.Korea_North: 114,
-  CscCountry.Korea_South: 115,
-  CscCountry.Kuwait: 116,
-  CscCountry.Kyrgyzstan: 117,
-  CscCountry.Laos: 118,
-  CscCountry.Latvia: 119,
-  CscCountry.Lebanon: 120,
-  CscCountry.Lesotho: 121,
-  CscCountry.Liberia: 122,
-  CscCountry.Libya: 123,
-  CscCountry.Liechtenstein: 124,
-  CscCountry.Lithuania: 125,
-  CscCountry.Luxembourg: 126,
-  CscCountry.Macau_S_A_R: 127,
-  CscCountry.Macedonia: 128,
-  CscCountry.Madagascar: 129,
-  CscCountry.Malawi: 130,
-  CscCountry.Malaysia: 131,
-  CscCountry.Maldives: 132,
-  CscCountry.Mali: 133,
-  CscCountry.Malta: 134,
-  CscCountry.Man_Isle_of: 135,
-  CscCountry.Marshall_Islands: 136,
-  CscCountry.Martinique: 137,
-  CscCountry.Mauritania: 138,
-  CscCountry.Mauritius: 139,
-  CscCountry.Mayotte: 140,
-  CscCountry.Mexico: 141,
-  CscCountry.Micronesia: 142,
-  CscCountry.Moldova: 143,
-  CscCountry.Monaco: 144,
-  CscCountry.Mongolia: 145,
-  CscCountry.Montenegro: 146,
-  CscCountry.Montserrat: 147,
-  CscCountry.Morocco: 148,
-  CscCountry.Mozambique: 149,
-  CscCountry.Myanmar: 150,
-  CscCountry.Namibia: 151,
-  CscCountry.Nauru: 152,
-  CscCountry.Nepal: 153,
-  CscCountry.Bonaire_Sint_Eustatius_and_Saba: 154,
-  CscCountry.Netherlands_The: 155,
-  CscCountry.New_Caledonia: 156,
-  CscCountry.New_Zealand: 157,
-  CscCountry.Nicaragua: 158,
-  CscCountry.Niger: 159,
-  CscCountry.Nigeria: 160,
-  CscCountry.Niue: 161,
-  CscCountry.Norfolk_Island: 162,
-  CscCountry.Northern_Mariana_Islands: 163,
-  CscCountry.Norway: 164,
-  CscCountry.Oman: 165,
-  CscCountry.Pakistan: 166,
-  CscCountry.Palau: 167,
-  CscCountry.Palestinian_Territory_Occupied: 168,
-  CscCountry.Panama: 169,
-  CscCountry.Papua_new_Guinea: 170,
-  CscCountry.Paraguay: 171,
-  CscCountry.Peru: 172,
-  CscCountry.Philippines: 173,
-  CscCountry.Pitcairn_Island: 174,
-  CscCountry.Poland: 175,
-  CscCountry.Portugal: 176,
-  CscCountry.Puerto_Rico: 177,
-  CscCountry.Qatar: 178,
-  CscCountry.Reunion: 179,
-  CscCountry.Romania: 180,
-  CscCountry.Russia: 181,
-  CscCountry.Rwanda: 182,
-  CscCountry.Saint_Helena: 183,
-  CscCountry.Saint_Kitts_And_Nevis: 184,
-  CscCountry.Saint_Lucia: 185,
-  CscCountry.Saint_Pierre_and_Miquelon: 186,
-  CscCountry.Saint_Vincent_And_The_Grenadines: 187,
-  CscCountry.Saint_Barthelemy: 188,
-  CscCountry.Saint_Martin_French_part: 189,
-  CscCountry.Samoa: 190,
-  CscCountry.San_Marino: 191,
-  CscCountry.Sao_Tome_and_Principe: 192,
-  CscCountry.Saudi_Arabia: 193,
-  CscCountry.Senegal: 194,
-  CscCountry.Serbia: 195,
-  CscCountry.Seychelles: 196,
-  CscCountry.Sierra_Leone: 197,
-  CscCountry.Singapore: 198,
-  CscCountry.Slovakia: 199,
-  CscCountry.Slovenia: 200,
-  CscCountry.Solomon_Islands: 201,
-  CscCountry.Somalia: 202,
-  CscCountry.South_Africa: 203,
-  CscCountry.South_Georgia: 204,
-  CscCountry.South_Sudan: 205,
-  CscCountry.Spain: 206,
-  CscCountry.Sri_Lanka: 207,
-  CscCountry.Sudan: 208,
-  CscCountry.Suriname: 209,
-  CscCountry.Svalbard_And_Jan_Mayen_Islands: 210,
-  CscCountry.Swaziland: 211,
-  CscCountry.Sweden: 212,
-  CscCountry.Switzerland: 213,
-  CscCountry.Syria: 214,
-  CscCountry.Taiwan: 215,
-  CscCountry.Tajikistan: 216,
-  CscCountry.Tanzania: 217,
-  CscCountry.Thailand: 218,
-  CscCountry.Togo: 219,
-  CscCountry.Tokelau: 220,
-  CscCountry.Tonga: 221,
-  CscCountry.Trinidad_And_Tobago: 222,
-  CscCountry.Tunisia: 223,
-  CscCountry.Turkey: 224,
-  CscCountry.Turkmenistan: 225,
-  CscCountry.Turks_And_Caicos_Islands: 226,
-  CscCountry.Tuvalu: 227,
-  CscCountry.Uganda: 228,
-  CscCountry.Ukraine: 229,
-  CscCountry.United_Arab_Emirates: 230,
-  CscCountry.United_Kingdom: 231,
-  CscCountry.United_States: 232,
-  CscCountry.United_States_Minor_Outlying_Islands: 233,
-  CscCountry.Uruguay: 234,
-  CscCountry.Uzbekistan: 235,
-  CscCountry.Vanuatu: 236,
-  CscCountry.Vatican_City_State_Holy_See: 237,
-  CscCountry.Venezuela: 238,
-  CscCountry.Vietnam: 239,
-  CscCountry.Virgin_Islands_British: 240,
-  CscCountry.Virgin_Islands_US: 241,
-  CscCountry.Wallis_And_Futuna_Islands: 242,
-  CscCountry.Western_Sahara: 243,
-  CscCountry.Yemen: 244,
-  CscCountry.Zambia: 245,
-  CscCountry.Zimbabwe: 246,
-  CscCountry.Kosovo: 247,
-  CscCountry.Curacao: 248,
-  CscCountry.Sint_Maarten_Dutch_part: 249,
+const Map<CscCountry, int> countriesMap = {
+  CscCountry.afghanistan: 0,
+  CscCountry.alandIslands: 1,
+  CscCountry.albania: 2,
+  CscCountry.algeria: 3,
+  CscCountry.americanSamoa: 4,
+  CscCountry.andorra: 5,
+  CscCountry.angola: 6,
+  CscCountry.anguilla: 7,
+  CscCountry.antarctica: 8,
+  CscCountry.antiguaAndBarbuda: 9,
+  CscCountry.argentina: 10,
+  CscCountry.armenia: 11,
+  CscCountry.aruba: 12,
+  CscCountry.australia: 13,
+  CscCountry.austria: 14,
+  CscCountry.azerbaijan: 15,
+  CscCountry.bahamasThe: 16,
+  CscCountry.bahrain: 17,
+  CscCountry.bangladesh: 18,
+  CscCountry.barbados: 19,
+  CscCountry.belarus: 20,
+  CscCountry.belgium: 21,
+  CscCountry.belize: 22,
+  CscCountry.benin: 23,
+  CscCountry.bermuda: 24,
+  CscCountry.bhutan: 25,
+  CscCountry.bolivia: 26,
+  CscCountry.bosniaAndHerzegovina: 27,
+  CscCountry.botswana: 28,
+  CscCountry.bouvetIsland: 29,
+  CscCountry.brazil: 30,
+  CscCountry.britishIndianOceanTerritory: 31,
+  CscCountry.brunei: 32,
+  CscCountry.bulgaria: 33,
+  CscCountry.burkinaFaso: 34,
+  CscCountry.burundi: 35,
+  CscCountry.cambodia: 36,
+  CscCountry.cameroon: 37,
+  CscCountry.canada: 38,
+  CscCountry.capeVerde: 39,
+  CscCountry.caymanIslands: 40,
+  CscCountry.centralAfricanRepublic: 41,
+  CscCountry.chad: 42,
+  CscCountry.chile: 43,
+  CscCountry.china: 44,
+  CscCountry.christmasIsland: 45,
+  CscCountry.cocosKeelingIslands: 46,
+  CscCountry.colombia: 47,
+  CscCountry.comoros: 48,
+  CscCountry.congo: 49,
+  CscCountry.congoTheDemocraticRepublicOfThe: 50,
+  CscCountry.cookIslands: 51,
+  CscCountry.costaRica: 52,
+  CscCountry.coteDIvoireIvoryCoast: 53,
+  CscCountry.croatiaHrvatska: 54,
+  CscCountry.cuba: 55,
+  CscCountry.cyprus: 56,
+  CscCountry.czechRepublic: 57,
+  CscCountry.denmark: 58,
+  CscCountry.djibouti: 59,
+  CscCountry.dominica: 60,
+  CscCountry.dominicanRepublic: 61,
+  CscCountry.eastTimor: 62,
+  CscCountry.ecuador: 63,
+  CscCountry.egypt: 64,
+  CscCountry.elSalvador: 65,
+  CscCountry.equatorialGuinea: 66,
+  CscCountry.eritrea: 67,
+  CscCountry.estonia: 68,
+  CscCountry.ethiopia: 69,
+  CscCountry.falklandIslands: 70,
+  CscCountry.faroeIslands: 71,
+  CscCountry.fijiIslands: 72,
+  CscCountry.finland: 73,
+  CscCountry.france: 74,
+  CscCountry.frenchGuiana: 75,
+  CscCountry.frenchPolynesia: 76,
+  CscCountry.frenchSouthernTerritories: 77,
+  CscCountry.gabon: 78,
+  CscCountry.gambiaThe: 79,
+  CscCountry.georgia: 80,
+  CscCountry.germany: 81,
+  CscCountry.ghana: 82,
+  CscCountry.gibraltar: 83,
+  CscCountry.greece: 84,
+  CscCountry.greenland: 85,
+  CscCountry.grenada: 86,
+  CscCountry.guadeloupe: 87,
+  CscCountry.guam: 88,
+  CscCountry.guatemala: 89,
+  CscCountry.guernseyAndAlderney: 90,
+  CscCountry.guinea: 91,
+  CscCountry.guineaBissau: 92,
+  CscCountry.guyana: 93,
+  CscCountry.haiti: 94,
+  CscCountry.heardIslandAndMcDonaldIslands: 95,
+  CscCountry.honduras: 96,
+  CscCountry.hongKongSAR: 97,
+  CscCountry.hungary: 98,
+  CscCountry.iceland: 99,
+  CscCountry.india: 100,
+  CscCountry.indonesia: 101,
+  CscCountry.iran: 102,
+  CscCountry.iraq: 103,
+  CscCountry.ireland: 104,
+  CscCountry.israel: 105,
+  CscCountry.italy: 106,
+  CscCountry.jamaica: 107,
+  CscCountry.japan: 108,
+  CscCountry.jersey: 109,
+  CscCountry.jordan: 110,
+  CscCountry.kazakhstan: 111,
+  CscCountry.kenya: 112,
+  CscCountry.kiribati: 113,
+  CscCountry.koreaNorth: 114,
+  CscCountry.koreaSouth: 115,
+  CscCountry.kuwait: 116,
+  CscCountry.kyrgyzstan: 117,
+  CscCountry.laos: 118,
+  CscCountry.latvia: 119,
+  CscCountry.lebanon: 120,
+  CscCountry.lesotho: 121,
+  CscCountry.liberia: 122,
+  CscCountry.libya: 123,
+  CscCountry.liechtenstein: 124,
+  CscCountry.lithuania: 125,
+  CscCountry.luxembourg: 126,
+  CscCountry.macauSAR: 127,
+  CscCountry.macedonia: 128,
+  CscCountry.madagascar: 129,
+  CscCountry.malawi: 130,
+  CscCountry.malaysia: 131,
+  CscCountry.maldives: 132,
+  CscCountry.mali: 133,
+  CscCountry.malta: 134,
+  CscCountry.manIsleOf: 135,
+  CscCountry.marshallIslands: 136,
+  CscCountry.martinique: 137,
+  CscCountry.mauritania: 138,
+  CscCountry.mauritius: 139,
+  CscCountry.mayotte: 140,
+  CscCountry.mexico: 141,
+  CscCountry.micronesia: 142,
+  CscCountry.moldova: 143,
+  CscCountry.monaco: 144,
+  CscCountry.mongolia: 145,
+  CscCountry.montenegro: 146,
+  CscCountry.montserrat: 147,
+  CscCountry.morocco: 148,
+  CscCountry.mozambique: 149,
+  CscCountry.myanmar: 150,
+  CscCountry.namibia: 151,
+  CscCountry.nauru: 152,
+  CscCountry.nepal: 153,
+  CscCountry.bonaireSintEustatiusAndSaba: 154,
+  CscCountry.netherlandsThe: 155,
+  CscCountry.newCaledonia: 156,
+  CscCountry.newZealand: 157,
+  CscCountry.nicaragua: 158,
+  CscCountry.niger: 159,
+  CscCountry.nigeria: 160,
+  CscCountry.niue: 161,
+  CscCountry.norfolkIsland: 162,
+  CscCountry.northernMarianaIslands: 163,
+  CscCountry.norway: 164,
+  CscCountry.oman: 165,
+  CscCountry.pakistan: 166,
+  CscCountry.palau: 167,
+  CscCountry.palestinianTerritoryOccupied: 168,
+  CscCountry.panama: 169,
+  CscCountry.papuaNewGuinea: 170,
+  CscCountry.paraguay: 171,
+  CscCountry.peru: 172,
+  CscCountry.philippines: 173,
+  CscCountry.pitcairnIsland: 174,
+  CscCountry.poland: 175,
+  CscCountry.portugal: 176,
+  CscCountry.puertoRico: 177,
+  CscCountry.qatar: 178,
+  CscCountry.reunion: 179,
+  CscCountry.romania: 180,
+  CscCountry.russia: 181,
+  CscCountry.rwanda: 182,
+  CscCountry.saintHelena: 183,
+  CscCountry.saintKittsAndNevis: 184,
+  CscCountry.saintLucia: 185,
+  CscCountry.saintPierreAndMiquelon: 186,
+  CscCountry.saintVincentAndTheGrenadines: 187,
+  CscCountry.saintBarthelemy: 188,
+  CscCountry.saintMartinFrenchPart: 189,
+  CscCountry.samoa: 190,
+  CscCountry.sanMarino: 191,
+  CscCountry.saoTomeAndPrincipe: 192,
+  CscCountry.saudiArabia: 193,
+  CscCountry.senegal: 194,
+  CscCountry.serbia: 195,
+  CscCountry.seychelles: 196,
+  CscCountry.sierraLeone: 197,
+  CscCountry.singapore: 198,
+  CscCountry.slovakia: 199,
+  CscCountry.slovenia: 200,
+  CscCountry.solomonIslands: 201,
+  CscCountry.somalia: 202,
+  CscCountry.southAfrica: 203,
+  CscCountry.southGeorgia: 204,
+  CscCountry.southSudan: 205,
+  CscCountry.spain: 206,
+  CscCountry.sriLanka: 207,
+  CscCountry.sudan: 208,
+  CscCountry.suriname: 209,
+  CscCountry.svalbardAndJanMayenIslands: 210,
+  CscCountry.swaziland: 211,
+  CscCountry.sweden: 212,
+  CscCountry.switzerland: 213,
+  CscCountry.syria: 214,
+  CscCountry.taiwan: 215,
+  CscCountry.tajikistan: 216,
+  CscCountry.tanzania: 217,
+  CscCountry.thailand: 218,
+  CscCountry.togo: 219,
+  CscCountry.tokelau: 220,
+  CscCountry.tonga: 221,
+  CscCountry.trinidadAndTobago: 222,
+  CscCountry.tunisia: 223,
+  CscCountry.turkey: 224,
+  CscCountry.turkmenistan: 225,
+  CscCountry.turksAndCaicosIslands: 226,
+  CscCountry.tuvalu: 227,
+  CscCountry.uganda: 228,
+  CscCountry.ukraine: 229,
+  CscCountry.unitedArabEmirates: 230,
+  CscCountry.unitedKingdom: 231,
+  CscCountry.unitedStates: 232,
+  CscCountry.unitedStatesMinorOutlyingIslands: 233,
+  CscCountry.uruguay: 234,
+  CscCountry.uzbekistan: 235,
+  CscCountry.vanuatu: 236,
+  CscCountry.vaticanCityStateHolySee: 237,
+  CscCountry.venezuela: 238,
+  CscCountry.vietnam: 239,
+  CscCountry.virginIslandsBritish: 240,
+  CscCountry.virginIslandsUS: 241,
+  CscCountry.wallisAndFutunaIslands: 242,
+  CscCountry.westernSahara: 243,
+  CscCountry.yemen: 244,
+  CscCountry.zambia: 245,
+  CscCountry.zimbabwe: 246,
+  CscCountry.kosovo: 247,
+  CscCountry.curacao: 248,
+  CscCountry.sintMaartenDutchPart: 249,
 };
 
 class CSCPicker extends StatefulWidget {
@@ -530,7 +530,7 @@ class CSCPicker extends StatefulWidget {
     this.disabledDropdownDecoration,
     this.searchBarRadius,
     this.dropdownDialogRadius,
-    this.flagState = CountryFlag.ENABLE,
+    this.flagState = CountryFlag.enable,
     this.layout = Layout.horizontal,
     this.showStates = true,
     this.showCities = true,
@@ -584,15 +584,15 @@ class CSCPicker extends StatefulWidget {
 }
 
 class CSCPickerState extends State<CSCPicker> {
-  List<String?> _cities = [];
-  List<String?> _country = [];
-  List<String?> _states = [];
+  final List<String?> _cities = [];
+  final List<String?> _country = [];
+  final List<String?> _states = [];
   List<CscCountry> _countryFilter = [];
 
   String _selectedCity = 'City';
   String? _selectedCountry;
   String _selectedState = 'State';
-  var responses;
+  dynamic responses;
 
   @override
   void initState() {
@@ -624,8 +624,8 @@ class CSCPickerState extends State<CSCPicker> {
 
   void _setDefaultCountry() {
     if (widget.defaultCountry != null) {
-      print(_country[Countries[widget.defaultCountry]!]);
-      _onSelectedCountry(_country[Countries[widget.defaultCountry]!]!);
+      debugPrint(_country[countriesMap[widget.defaultCountry]!]);
+      _onSelectedCountry(_country[countriesMap[widget.defaultCountry]!]!);
     }
   }
 
@@ -641,14 +641,14 @@ class CSCPickerState extends State<CSCPicker> {
     _country.clear();
     var countries = await getResponse() as List;
     if (_countryFilter.isNotEmpty) {
-      _countryFilter.forEach((element) {
-        var result = countries[Countries[element]!];
-        if(result!=null) addCountryToList(result);
-      });
+      for (var element in _countryFilter) {
+        var result = countries[countriesMap[element]!];
+        if (result != null) addCountryToList(result);
+      }
     } else {
-      countries.forEach((data) {
+      for (var data in countries) {
         addCountryToList(data);
-      });
+      }
     }
     _setDefaultCountry();
     return _country;
@@ -661,11 +661,9 @@ class CSCPickerState extends State<CSCPicker> {
     model.emoji = data['emoji'];
     if (!mounted) return;
     setState(() {
-      widget.flagState == CountryFlag.ENABLE ||
-              widget.flagState == CountryFlag.SHOW_IN_DROP_DOWN_ONLY
-          ? _country.add(model.emoji! +
-              "    " +
-              model.name!) /* : _country.add(model.name)*/
+      widget.flagState == CountryFlag.enable ||
+              widget.flagState == CountryFlag.showInDropDownOnly
+          ? _country.add("${model.emoji!}    ${model.name!}")
           : _country.add(model.name);
     });
   }
@@ -675,12 +673,12 @@ class CSCPickerState extends State<CSCPicker> {
     _states.clear();
     //print(_selectedCountry);
     var response = await getResponse();
-    var takeState = widget.flagState == CountryFlag.ENABLE ||
-            widget.flagState == CountryFlag.SHOW_IN_DROP_DOWN_ONLY
+    var takeState = widget.flagState == CountryFlag.enable ||
+            widget.flagState == CountryFlag.showInDropDownOnly
         ? response
             .map((map) => Country.fromJson(map))
             .where(
-                (item) => item.emoji + "    " + item.name == _selectedCountry)
+                (item) => "${item.emoji}    ${item.name}" == _selectedCountry)
             .map((item) => item.state)
             .toList()
         : response
@@ -689,16 +687,15 @@ class CSCPickerState extends State<CSCPicker> {
             .map((item) => item.state)
             .toList();
     var states = takeState as List;
-    states.forEach((f) {
-      if (!mounted) return;
+    for (var f in states) {
+      if (!mounted) return _states;
       setState(() {
         var name = f.map((item) => item.name).toList();
         for (var stateName in name) {
-          //print(stateName.toString());
           _states.add(stateName.toString());
         }
       });
-    });
+    }
     _states.sort((a, b) => a!.compareTo(b!));
     return _states;
   }
@@ -707,12 +704,12 @@ class CSCPickerState extends State<CSCPicker> {
   Future<List<String?>> getCities() async {
     _cities.clear();
     var response = await getResponse();
-    var takeCity = widget.flagState == CountryFlag.ENABLE ||
-            widget.flagState == CountryFlag.SHOW_IN_DROP_DOWN_ONLY
+    var takeCity = widget.flagState == CountryFlag.enable ||
+            widget.flagState == CountryFlag.showInDropDownOnly
         ? response
             .map((map) => Country.fromJson(map))
             .where(
-                (item) => item.emoji + "    " + item.name == _selectedCountry)
+                (item) => "${item.emoji}    ${item.name}" == _selectedCountry)
             .map((item) => item.state)
             .toList()
         : response
@@ -721,20 +718,19 @@ class CSCPickerState extends State<CSCPicker> {
             .map((item) => item.state)
             .toList();
     var cities = takeCity as List;
-    cities.forEach((f) {
+    for (var f in cities) {
       var name = f.where((item) => item.name == _selectedState);
       var cityName = name.map((item) => item.city).toList();
-      cityName.forEach((ci) {
-        if (!mounted) return;
+      for (var ci in cityName) {
+        if (!mounted) return _cities;
         setState(() {
           var citiesName = ci.map((item) => item.name).toList();
           for (var cityName in citiesName) {
-            //print(cityName.toString());
             _cities.add(cityName.toString());
           }
         });
-      });
-    });
+      }
+    }
     _cities.sort((a, b) => a!.compareTo(b!));
     return _cities;
   }
@@ -743,25 +739,28 @@ class CSCPickerState extends State<CSCPicker> {
   void _onSelectedCountry(String value) {
     if (!mounted) return;
     setState(() {
-      if (widget.flagState == CountryFlag.SHOW_IN_DROP_DOWN_ONLY) {
+      if (widget.flagState == CountryFlag.showInDropDownOnly) {
         try {
-          this.widget.onCountryChanged!(value.substring(6).trim());
-        } catch (e) {}
-      } else
-        this.widget.onCountryChanged!(value);
+          widget.onCountryChanged!(value.substring(6).trim());
+        } catch (e) {
+          // ignore
+        }
+      } else {
+        widget.onCountryChanged!(value);
+      }
       //code added in if condition
       if (value != _selectedCountry) {
         _states.clear();
         _cities.clear();
         _selectedState = widget.stateDropdownLabel;
         _selectedCity = widget.cityDropdownLabel;
-        this.widget.onStateChanged!(null);
-        this.widget.onCityChanged!(null);
+        widget.onStateChanged!(null);
+        widget.onCityChanged!(null);
         _selectedCountry = value;
         getStates();
       } else {
-        this.widget.onStateChanged!(_selectedState);
-        this.widget.onCityChanged!(_selectedCity);
+        widget.onStateChanged!(_selectedState);
+        widget.onCityChanged!(_selectedCity);
       }
     });
   }
@@ -769,16 +768,16 @@ class CSCPickerState extends State<CSCPicker> {
   void _onSelectedState(String value) {
     if (!mounted) return;
     setState(() {
-      this.widget.onStateChanged!(value);
+      widget.onStateChanged!(value);
       //code added in if condition
       if (value != _selectedState) {
         _cities.clear();
         _selectedCity = widget.cityDropdownLabel;
-        this.widget.onCityChanged!(null);
+        widget.onCityChanged!(null);
         _selectedState = value;
         getCities();
       } else {
-        this.widget.onCityChanged!(_selectedCity);
+        widget.onCityChanged!(_selectedCity);
       }
     });
   }
@@ -789,7 +788,7 @@ class CSCPickerState extends State<CSCPicker> {
       //code added in if condition
       if (value != _selectedCity) {
         _selectedCity = value;
-        this.widget.onCityChanged!(value);
+        widget.onCityChanged!(value);
       }
     });
   }
@@ -847,10 +846,11 @@ class CSCPickerState extends State<CSCPicker> {
         .where(
             (country) => country!.toLowerCase().contains(filter.toLowerCase()))
         .toList();
-    if (filteredList.isEmpty)
+    if (filteredList.isEmpty) {
       return _country;
-    else
+    } else {
       return filteredList;
+    }
   }
 
   ///filter Sate Data according to user input
@@ -858,10 +858,11 @@ class CSCPickerState extends State<CSCPicker> {
     var filteredList = _states
         .where((state) => state!.toLowerCase().contains(filter.toLowerCase()))
         .toList();
-    if (filteredList.isEmpty)
+    if (filteredList.isEmpty) {
       return _states;
-    else
+    } else {
       return filteredList;
+    }
   }
 
   ///filter City Data according to user input
@@ -869,10 +870,11 @@ class CSCPickerState extends State<CSCPicker> {
     var filteredList = _cities
         .where((city) => city!.toLowerCase().contains(filter.toLowerCase()))
         .toList();
-    if (filteredList.isEmpty)
+    if (filteredList.isEmpty) {
       return _cities;
-    else
+    } else {
       return filteredList;
+    }
   }
 
   ///Country Dropdown Widget
@@ -885,20 +887,18 @@ class CSCPickerState extends State<CSCPicker> {
       itemStyle: widget.dropdownItemStyle,
       decoration: widget.dropdownDecoration,
       disabledDecoration: widget.disabledDropdownDecoration,
-      disabled: _country.length == 0 || widget.disableCountry ? true : false,
+      disabled: _country.isEmpty || widget.disableCountry,
       dialogRadius: widget.dropdownDialogRadius,
       searchBarRadius: widget.searchBarRadius,
       label: widget.countrySearchPlaceholder,
       items: _country.map((String? dropDownStringItem) {
         return dropDownStringItem;
       }).toList(),
-      selected: _selectedCountry != null
-          ? _selectedCountry
-          : widget.countryDropdownLabel,
+      selected: _selectedCountry ?? widget.countryDropdownLabel,
       //selected: _selectedCountry != null ? _selectedCountry : "Country",
       //onChanged: (value) => _onSelectedCountry(value),
       onChanged: (value) {
-        print("countryChanged $value $_selectedCountry");
+        debugPrint("countryChanged $value $_selectedCountry");
         if (value != null) {
           _onSelectedCountry(value);
         }
@@ -911,7 +911,7 @@ class CSCPickerState extends State<CSCPicker> {
     return DropdownWithSearch(
       title: widget.stateDropdownLabel,
       placeHolder: widget.stateSearchPlaceholder,
-      disabled: _states.length == 0 ? true : false,
+      disabled: _states.isEmpty,
       items: _states.map((String? dropDownStringItem) {
         return dropDownStringItem;
       }).toList(),
@@ -939,7 +939,7 @@ class CSCPickerState extends State<CSCPicker> {
     return DropdownWithSearch(
       title: widget.cityDropdownLabel,
       placeHolder: widget.citySearchPlaceholder,
-      disabled: _cities.length == 0 ? true : false,
+      disabled: _cities.isEmpty,
       items: _cities.map((String? dropDownStringItem) {
         return dropDownStringItem;
       }).toList(),

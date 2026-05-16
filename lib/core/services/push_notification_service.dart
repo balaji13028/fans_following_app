@@ -42,6 +42,37 @@ class PushNotificationService {
       debugPrint('A new onMessageOpenedApp event was published!');
       _handleMessage(message);
     });
+
+    // 5. Get and log the token (Don't await to avoid blocking app start)
+    getToken().then((token) {
+      debugPrint("FCM Token: $token");
+    });
+  }
+
+  static Future<String?> getToken() async {
+    try {
+      // Best approach: try-catch with a small delay and retry
+      String? token;
+      int retryCount = 0;
+      while (retryCount < 3) {
+        try {
+          token = await _firebaseMessaging.getToken();
+          if (token != null) break;
+        } catch (e) {
+          if (e.toString().contains('apns-token-not-set')) {
+            debugPrint("APNS token not set yet, retrying... ($retryCount)");
+            await Future.delayed(Duration(milliseconds: 500 * (retryCount + 1)));
+          } else {
+            rethrow;
+          }
+        }
+        retryCount++;
+      }
+      return token;
+    } catch (e) {
+      debugPrint("Error getting FCM token: $e");
+      return null;
+    }
   }
 
   static void _handleMessage(RemoteMessage message) {

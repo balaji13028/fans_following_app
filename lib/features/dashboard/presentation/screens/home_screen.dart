@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../data/services/home_service.dart';
-import '../../../feed/data/models/event_model.dart';
-import '../../../feed/data/models/post_model.dart';
 import '../../../feed/data/models/social_link_model.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/dashboard_provider.dart';
+import '../widgets/video_player_widget.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -29,17 +29,86 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
   }
 
+  String _getRelativeTime(DateTime dateTime) {
+    final duration = DateTime.now().difference(dateTime);
+
+    if (duration.inSeconds < 60) {
+      return '${duration.inSeconds}s ago';
+    } else if (duration.inMinutes < 60) {
+      return '${duration.inMinutes} min ago';
+    } else if (duration.inHours < 24) {
+      return '${duration.inHours}h ago';
+    } else if (duration.inDays < 30) {
+      return '${duration.inDays}d ago';
+    } else if (duration.inDays < 365) {
+      final months = (duration.inDays / 30).floor();
+      return '${months}m ago';
+    } else {
+      final years = (duration.inDays / 365).floor();
+      return '${years}yrs ago';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
+    final authState = ref.watch(authNotifierProvider);
     final events = dashboardState.events;
     final posts = dashboardState.posts;
     final socialLinks = dashboardState.socialLinks;
 
     if (dashboardState.isLoading && events.isEmpty) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          centerTitle: true,
+          title: Image.asset('assets/logo/aa.png', height: 35),
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Skeleton(height: 220, borderRadius: 16, width: double.infinity),
+              ),
+              const SizedBox(height: 36),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Skeleton(height: 20, width: 150),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 50,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 5,
+                  itemBuilder: (_, __) => const Padding(
+                    padding: EdgeInsets.only(right: 12),
+                    child: Skeleton(height: 40, width: 100, borderRadius: 20),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 36),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Skeleton(height: 20, width: 120),
+              ),
+              const SizedBox(height: 16),
+              ...List.generate(
+                3,
+                (index) => Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Skeleton(height: 300, borderRadius: 16, width: double.infinity),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -52,16 +121,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: Image.asset(
           'assets/logo/aa.png',
           height: 35,
-          // colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
               radius: 18,
-              backgroundImage: const AssetImage(
-                'assets/images/profile_placeholder.png',
-              ),
+              backgroundImage: (authState.user?.profileImageUrl != null)
+                  ? NetworkImage(authState.user!.profileImageUrl!)
+                  : const AssetImage(
+                      'assets/images/profile_placeholder.png',
+                    ) as ImageProvider,
               backgroundColor: Colors.grey[800],
             ),
           ),
@@ -97,7 +167,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 : const AssetImage(
                                         'assets/images/event_placeholder.png',
                                       )
-                                      as ImageProvider,
+                                    as ImageProvider,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -188,9 +258,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
               ],
 
+              const SizedBox(height: 24),
               // Stay Connected
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -206,101 +276,74 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: 16),
               SizedBox(
                 height: 60,
-                child: Builder(
-                  builder: (context) {
-                    final displayLinks = socialLinks.isNotEmpty
-                        ? socialLinks
-                        : [
-                            SocialLinkModel(
-                              id: '1',
-                              name: 'Instagram',
-                              url: 'https://www.instagram.com/alluarjunonline/',
-                              image: 'assets/icons/instagram.svg',
-                            ),
-                            SocialLinkModel(
-                              id: '2',
-                              name: 'Facebook',
-                              url: 'https://facebook.com/AlluArjun',
-                              image: 'assets/icons/Facebook.svg',
-                            ),
-                            SocialLinkModel(
-                              id: '3',
-                              name: 'X',
-                              url: 'https://x.com/alluarjun',
-                              image: 'assets/icons/x.svg',
-                            ),
-                          ];
-
-                    return ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      itemCount: displayLinks.length,
-                      itemBuilder: (context, index) {
-                        final link = displayLinks[index];
-                        final color = _getSocialColor(link.name);
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 4.0,
-                          ),
-                          child: InkWell(
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: socialLinks.length,
+                  itemBuilder: (context, index) {
+                    final link = socialLinks[index];
+                    final color = _getSocialColor(link.name);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        splashColor: color.withValues(alpha: 0.3),
+                        highlightColor: color.withValues(alpha: 0.1),
+                        onTap: () async {
+                          final uri = Uri.parse(link.url);
+                          try {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } catch (e) {
+                            debugPrint('Could not launch ${link.url}: $e');
+                          }
+                        },
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            splashColor: color.withValues(alpha: 0.3),
-                            highlightColor: color.withValues(alpha: 0.1),
-                            onTap: () async {
-                              final uri = Uri.parse(link.url);
-                              try {
-                                await launchUrl(
-                                  uri,
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              } catch (e) {
-                                debugPrint('Could not launch ${link.url}: $e');
-                              }
-                            },
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    const Color(
-                                      0xFF1A1A1A,
-                                    ).withValues(alpha: 0.9),
-                                    const Color(
-                                      0xFF1A1A1A,
-                                    ).withValues(alpha: 0.5),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: color.withValues(alpha: 0.5),
-                                  width: 0.4,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: color.withValues(alpha: 0.25),
-                                    blurRadius: 12,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color(
+                                  0xFF1A1A1A,
+                                ).withValues(alpha: 0.9),
+                                const Color(
+                                  0xFF1A1A1A,
+                                ).withValues(alpha: 0.5),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: color.withValues(alpha: 0.5),
+                              width: 0.4,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.25),
+                                blurRadius: 12,
+                                spreadRadius: 2,
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: 8,
-                                    sigmaY: 8,
-                                  ),
-                                  child: Center(child: _buildSocialImage(link)),
-                                ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(
+                                sigmaX: 8,
+                                sigmaY: 8,
                               ),
+                              child: Center(child: _buildSocialImage(link)),
                             ),
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -326,114 +369,143 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 itemCount: posts.length,
                 itemBuilder: (context, index) {
                   final post = posts[index];
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                post.title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              if (post.tags.isNotEmpty)
+                  return GestureDetector(
+                    onDoubleTap: () => ref
+                        .read(
+                          dashboardNotifierProvider.notifier,
+                        )
+                        .toggleLike(post.id, 'post'),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  post.tags.join(', '),
+                                  post.title,
                                   style: const TextStyle(
-                                    color: Colors.orange,
-                                    fontSize: 12,
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              const SizedBox(height: 8),
-                              Text(
-                                post.description,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
+                                const SizedBox(height: 4),
+                                if (post.tags.isNotEmpty)
+                                  Text(
+                                    post.tags.join(', '),
+                                    style: const TextStyle(
+                                      color: Colors.orange,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  post.description,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => ref
-                                        .read(
-                                          dashboardNotifierProvider.notifier,
-                                        )
-                                        .toggleLike(post.id, 'post'),
-                                    child: Icon(
-                                      post.isLiked
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      color: post.isLiked
-                                          ? Colors.red
-                                          : Colors.white60,
-                                      size: 18,
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => ref
+                                          .read(
+                                            dashboardNotifierProvider.notifier,
+                                          )
+                                          .toggleLike(post.id, 'post'),
+                                      child: Icon(
+                                        post.isLiked
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: post.isLiked
+                                            ? Colors.red
+                                            : Colors.white60,
+                                        size: 18,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    post.likesCount.toString(),
-                                    style: const TextStyle(
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      post.likesCount.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.white60,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    const Icon(
+                                      Icons.access_time,
                                       color: Colors.white60,
-                                      fontSize: 13,
+                                      size: 16,
                                     ),
-                                  ),
-                                  const Spacer(),
-                                  const Icon(
-                                    Icons.access_time,
-                                    color: Colors.white60,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${DateTime.now().difference(post.postedOn).inHours}h ago',
-                                    style: const TextStyle(
-                                      color: Colors.white60,
-                                      fontSize: 13,
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _getRelativeTime(post.postedOn),
+                                      style: const TextStyle(
+                                        color: Colors.white60,
+                                        fontSize: 13,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (post.imageUrl != null)
-                          ClipRRect(
-                            borderRadius: const BorderRadius.vertical(
-                              bottom: Radius.circular(16),
-                            ),
-                            child: Image.network(
-                              post.imageUrl!,
-                              width: double.infinity,
-                              height: 200,
-                              fit: BoxFit.cover,
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                      ],
+                          if (post.videoUrl != null)
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                bottom: Radius.circular(16),
+                              ),
+                              child: VideoPlayerWidget(videoUrl: post.videoUrl!),
+                            )
+                          else if (post.imageUrl != null)
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                bottom: Radius.circular(16),
+                              ),
+                              child: CachedNetworkImage(
+                                imageUrl: post.imageUrl!,
+                                width: double.infinity,
+                                height: 200,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  height: 200,
+                                  color: Colors.grey[800],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  height: 200,
+                                  color: Colors.grey[800],
+                                  child:
+                                      const Icon(Icons.error, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   );
                 },
               ),
-              const SizedBox(height: 100), // Bottom padding for scroll
+              const SizedBox(height: 140), // Bottom padding for scroll
             ],
           ),
         ),

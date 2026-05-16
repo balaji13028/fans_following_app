@@ -12,7 +12,6 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -20,10 +19,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeIn,
     );
 
     // Start fade animation after a short delay
@@ -111,7 +106,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           'assets/logo/aa.png',
                           width: 60,
                           height: 60,
-                          color: Colors.white,
                           fit: BoxFit.contain,
                         ),
                       ),

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import 'sign_up_screen.dart';
-import 'otp_screen.dart';
+// import 'otp_screen.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:country_picker/country_picker.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -16,7 +18,10 @@ class SignInScreen extends ConsumerStatefulWidget {
 class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   final _mobileController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
   bool _isLoading = false;
+  Country _selectedCountry = Country.parse('IN'); // Default to India
 
   @override
   void initState() {
@@ -29,16 +34,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   @override
   void dispose() {
     _mobileController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleGetCode() async {
+  Future<void> _handleSignIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
-        final mobileNumber = _mobileController.text.trim().replaceAll(' ', '');
+        final mobileNumber =
+            '+${_selectedCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
+        final password = _passwordController.text;
 
+        /* Commented out OTP flow
         final serverOtp = await ref.read(authNotifierProvider.notifier).sendOtp(mobileNumber);
 
         if (mounted) {
@@ -47,10 +56,24 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             MaterialPageRoute(
               builder: (context) => OtpScreen(
                 mobileNumber: mobileNumber,
-                isLogin: true, // Passing flag to indicate it's a login flow
+                isLogin: true, 
                 serverOtp: serverOtp,
               ),
             ),
+          );
+        }
+        */
+
+        // Password based login
+        await ref
+            .read(authNotifierProvider.notifier)
+            .userLogin(mobileNumber: mobileNumber, password: password);
+
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            (route) => false,
           );
         }
       } catch (e) {
@@ -111,19 +134,139 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 const SizedBox(height: 48),
 
                 // Mobile Number Field
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8.0),
+                      child: Text(
+                        'Mobile Number',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Country Code Picker
+                        GestureDetector(
+                          onTap: () {
+                            showCountryPicker(
+                              context: context,
+                              showPhoneCode: true,
+                              favorite: ['IN'],
+                              onSelect: (Country country) {
+                                setState(() {
+                                  _selectedCountry = country;
+                                });
+                              },
+                              countryListTheme: CountryListThemeData(
+                                backgroundColor: AppColors.surface,
+                                textStyle: const TextStyle(color: Colors.white),
+                                searchTextStyle: const TextStyle(
+                                  color: Colors.white,
+                                ),
+                                inputDecoration: InputDecoration(
+                                  hintText: 'Search country',
+                                  hintStyle: const TextStyle(
+                                    color: Colors.white54,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.search,
+                                    color: Colors.white54,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  filled: true,
+                                  fillColor: AppColors.surfaceVariant,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            height:
+                                50, // Adjusted to match the dense TextFormField height
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceVariant,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  _selectedCountry.flagEmoji,
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '+${_selectedCountry.phoneCode}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white54,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Mobile Number Input
+                        Expanded(
+                          child: CustomTextField(
+                            hintText: 'Enter mobile number',
+                            controller: _mobileController,
+                            keyboardType: TextInputType.phone,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter mobile number';
+                              }
+                              if (!RegExp(
+                                r'^[0-9]{8,15}$',
+                              ).hasMatch(value.replaceAll(' ', ''))) {
+                                return 'Please enter a valid mobile number';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Password Field
                 CustomTextField(
-                  labelText: 'Mobile Number',
-                  hintText: '+91 99 99 999999',
-                  controller: _mobileController,
-                  keyboardType: TextInputType.phone,
+                  labelText: 'Password',
+                  hintText: 'Enter your password',
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: Colors.white54,
+                    ),
+                    onPressed: () {
+                      setState(() => _obscurePassword = !_obscurePassword);
+                    },
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter mobile number';
-                    }
-                    if (!RegExp(
-                      r'^[0-9]{10,}$',
-                    ).hasMatch(value.replaceAll(' ', ''))) {
-                      return 'Please enter a valid mobile number';
+                      return 'Please enter password';
                     }
                     return null;
                   },
@@ -131,9 +274,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
                 const SizedBox(height: 40),
 
-                // Get A Code Button
+                // Sign In Button
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _handleGetCode,
+                  onPressed: _isLoading ? null : _handleSignIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
@@ -155,7 +298,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ),
                         )
                       : const Text(
-                          'Get A Code',
+                          'Sign In',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

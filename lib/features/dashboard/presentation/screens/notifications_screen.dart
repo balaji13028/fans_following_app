@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/services/home_service.dart';
 import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../providers/dashboard_provider.dart';
+import '../../../../core/widgets/skeleton.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -40,11 +40,23 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   String _formatTimeAgo(DateTime dateTime) {
-    final diff = DateTime.now().difference(dateTime);
-    if (diff.inDays > 0) return '${diff.inDays}d ago';
-    if (diff.inHours > 0) return '${diff.inHours}h ago';
-    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
-    return 'Just now';
+    final duration = DateTime.now().difference(dateTime);
+
+    if (duration.inSeconds < 60) {
+      return '${duration.inSeconds}s ago';
+    } else if (duration.inMinutes < 60) {
+      return '${duration.inMinutes} min ago';
+    } else if (duration.inHours < 24) {
+      return '${duration.inHours}h ago';
+    } else if (duration.inDays < 30) {
+      return '${duration.inDays}d ago';
+    } else if (duration.inDays < 365) {
+      final months = (duration.inDays / 30).floor();
+      return '${months}m ago';
+    } else {
+      final years = (duration.inDays / 365).floor();
+      return '${years}yrs ago';
+    }
   }
 
   String _formatCount(int count) {
@@ -77,26 +89,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: const AssetImage(
-                'assets/images/profile_placeholder.png',
-              ),
-              backgroundColor: Colors.grey[800],
-            ),
-          ),
-        ],
       ),
       body: feedItems.isEmpty && isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          ? ListView.builder(
+              padding: const EdgeInsets.only(top: 8, bottom: 140),
+              itemCount: 5,
+              itemBuilder: (_, __) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Skeleton(height: 350, borderRadius: 12, width: double.infinity),
+              ),
+            )
           : RefreshIndicator(
               onRefresh: () => ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true),
               child: ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.only(top: 8, bottom: 140),
                 itemCount: feedItems.length + (hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == feedItems.length) {
@@ -122,9 +129,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                           'Join us for ${item.name} at ${item.location ?? "TBA"}.',
                       imageUrl: item.imageUrl,
                       likesCount: item.likesCount,
-                      createdAt: DateTime.parse(
-                        item.date,
-                      ), // Using date as createdAt for events
+                      createdAt: item.createdAt,
                       isLiked: item.isLiked,
                     );
                   } else if (item is PostModel) {
@@ -136,9 +141,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       description: item.description,
                       imageUrl: item.imageUrl,
                       likesCount: item.likesCount,
-                      createdAt: DateTime.now().subtract(
-                        const Duration(hours: 4),
-                      ), // Mocking time for now
+                      createdAt: item.postedOn,
                       isLiked: item.isLiked,
                     );
                   }

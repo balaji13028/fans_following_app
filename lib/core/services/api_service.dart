@@ -178,6 +178,18 @@ class ApiService {
       throw _handleException(e);
     }
   }
+
+  // ==================== Helper Methods ====================
+
+  /// Create FormData from Map
+  Future<FormData> createFormData(Map<String, dynamic> data) async {
+    return FormData.fromMap(data);
+  }
+
+  /// Create MultipartFile from file path
+  Future<MultipartFile> createMultipartFile(String filePath) async {
+    return await MultipartFile.fromFile(filePath);
+  }
 }
 
 /// Interceptor to add auth token to requests

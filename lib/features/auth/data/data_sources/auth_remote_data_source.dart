@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../models/user_model.dart';
@@ -10,31 +9,17 @@ class AuthRemoteDataSource {
   AuthRemoteDataSource(this._apiService);
 
   /// Sign in user
-  Future<Map<String, dynamic>> signIn({
-    required String email,
+  Future<Map<String, dynamic>> userLogin({
+    required String mobileNumber,
     required String password,
   }) async {
     try {
       final response = await _apiService.post(
-        AppConstants.signInEndpoint,
-        data: {'email': email, 'password': password},
+        AppConstants.userLoginEndpoint,
+        data: {'mobileNumber': mobileNumber, 'password': password},
       );
 
       return response.data as Map<String, dynamic>;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Sign up user (Deprecated, use sendOtp instead)
-  Future<Map<String, dynamic>> signUp({
-    required String email,
-    required String password,
-    required String name,
-  }) async {
-    try {
-      // Just returning mock data since the actual flow uses OTP now
-      return {'message': 'Deprecated'};
     } catch (e) {
       rethrow;
     }
@@ -57,11 +42,18 @@ class AuthRemoteDataSource {
   Future<Map<String, dynamic>> verifyOtp({
     required String mobileNumber,
     required String otp,
+    String? fcmToken,
+    String? password,
   }) async {
     try {
       final response = await _apiService.post(
         AppConstants.verifyOtpEndpoint,
-        data: {'mobileNumber': mobileNumber, 'otp': otp},
+        data: {
+          'mobileNumber': mobileNumber,
+          'otp': otp,
+          'fcmToken': fcmToken,
+          'password': password,
+        },
       );
       return response.data as Map<String, dynamic>;
     } catch (e) {
@@ -99,6 +91,39 @@ class AuthRemoteDataSource {
     try {
       final response = await _apiService.get(AppConstants.profileEndpoint);
       return UserModel.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Register FCM Token
+  Future<void> registerFcmToken(String fcmToken) async {
+    try {
+      await _apiService.post(
+        '${AppConstants.userDetailsEndpoint}/fcm-token',
+        data: {'fcmToken': fcmToken},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Upload Profile Image
+  Future<String> uploadProfileImage({
+    required String userId,
+    required String filePath,
+  }) async {
+    try {
+      final formData = await _apiService.createFormData({
+        'image': await _apiService.createMultipartFile(filePath),
+      });
+
+      final response = await _apiService.post(
+        '${AppConstants.userDetailsEndpoint}/$userId/profile-image',
+        data: formData,
+      );
+
+      return response.data['imageUrl'] as String;
     } catch (e) {
       rethrow;
     }

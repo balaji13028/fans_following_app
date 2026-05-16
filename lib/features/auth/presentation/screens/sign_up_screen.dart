@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/widgets/custom_text_field.dart';
-import '../../../../core/widgets/custom_dropdown.dart';
 import '../../../../core/widgets/date_picker_field.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:csc_picker/csc_picker.dart';
 import 'otp_screen.dart';
+import 'package:country_picker/country_picker.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -37,6 +37,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   int _currentStep = 0;
   bool _isLoading = false;
+  Country _selectedPhoneCountry = Country.parse('IN'); // Default to India
 
   @override
   void dispose() {
@@ -103,7 +104,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       setState(() => _isLoading = true);
 
       try {
-        final mobile = _mobileController.text.trim();
+        final mobile = '+${_selectedPhoneCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
 
         // 1. Send OTP
         final serverOtp = await ref.read(authNotifierProvider.notifier).sendOtp(mobile);
@@ -121,6 +122,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             'instagramId': _instagramController.text.trim(),
             'facebookId': _facebookController.text.trim(),
             'twitterId': _twitterController.text.trim(),
+            'password': _passwordController.text,
           };
 
           // 3. Navigate to OTP screen
@@ -315,13 +317,110 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             const SizedBox(height: 20),
 
             // Mobile Number Field
-            CustomTextField(
-              labelText: 'Mobile Number',
-              hintText: 'Enter your mobile number',
-              controller: _mobileController,
-              keyboardType: TextInputType.phone,
-              validator: _validateMobile,
-              isRequired: true,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Mobile Number',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 4.0),
+                        child: Text(
+                          '*',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Country Code Picker
+                    GestureDetector(
+                      onTap: () {
+                        showCountryPicker(
+                          context: context,
+                          showPhoneCode: true,
+                          favorite: ['IN'],
+                          onSelect: (Country country) {
+                            setState(() {
+                              _selectedPhoneCountry = country;
+                            });
+                          },
+                          countryListTheme: CountryListThemeData(
+                            backgroundColor: AppColors.surface,
+                            textStyle: const TextStyle(color: Colors.white),
+                            searchTextStyle: const TextStyle(color: Colors.white),
+                            inputDecoration: InputDecoration(
+                              hintText: 'Search country',
+                              hintStyle: const TextStyle(color: Colors.white54),
+                              prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: AppColors.surfaceVariant,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        height: 50, // Adjusted to match the dense TextFormField height
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              _selectedPhoneCountry.flagEmoji,
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '+${_selectedPhoneCountry.phoneCode}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Icon(Icons.arrow_drop_down, color: Colors.white54),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Mobile Number Input
+                    Expanded(
+                      child: CustomTextField(
+                        hintText: 'Enter mobile number',
+                        controller: _mobileController,
+                        keyboardType: TextInputType.phone,
+                        validator: _validateMobile,
+                        isRequired: false, // Label handled above
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
 
             const SizedBox(height: 20),
@@ -406,7 +505,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             CSCPicker(
               showStates: true,
               showCities: true,
-              flagState: CountryFlag.DISABLE,
+              flagState: CountryFlag.disable,
               dropdownDecoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
                 color: AppColors.surfaceVariant,

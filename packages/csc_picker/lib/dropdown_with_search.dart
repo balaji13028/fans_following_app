@@ -67,16 +67,14 @@ class DropdownWithSearch<T> extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: !disabled
-              ? decoration != null
-                  ? decoration
-                  : BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
+              ? decoration ??
+                  BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(5)),
                       color: Colors.white,
                       border: Border.all(color: Colors.grey.shade300, width: 1))
-              : disabledDecoration != null
-                  ? disabledDecoration
-                  : BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
+              : disabledDecoration ??
+                  BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.circular(5)),
                       color: Colors.grey.shade300,
                       border:
                           Border.all(color: Colors.grey.shade300, width: 1)),
@@ -85,9 +83,7 @@ class DropdownWithSearch<T> extends StatelessWidget {
               Expanded(
                   child: Text(selected.toString(),
                       overflow: TextOverflow.ellipsis,
-                      style: selectedItemStyle != null
-                          ? selectedItemStyle
-                          : TextStyle(fontSize: 14))),
+                      style: selectedItemStyle ?? TextStyle(fontSize: 14))),
               Icon(Icons.keyboard_arrow_down_rounded)
             ],
           ),
@@ -119,10 +115,10 @@ class SearchDialog extends StatefulWidget {
       : super(key: key);
 
   @override
-  _SearchDialogState createState() => _SearchDialogState();
+  SearchDialogState createState() => SearchDialogState();
 }
 
-class _SearchDialogState<T> extends State<SearchDialog> {
+class SearchDialogState<T> extends State<SearchDialog> {
   TextEditingController textController = TextEditingController();
   late List filteredList;
 
@@ -169,12 +165,11 @@ class _SearchDialogState<T> extends State<SearchDialog> {
               children: [
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    widget.title,
-                    style: widget.titleStyle != null
-                        ? widget.titleStyle
-                        : TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
+                    child: Text(
+                      widget.title,
+                      style: widget.titleStyle ??
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
                 ),
                 IconButton(
                     icon: Icon(Icons.close),
@@ -224,9 +219,7 @@ class _SearchDialogState<T> extends State<SearchDialog> {
                     borderSide: const BorderSide(color: Colors.black12),
                   ),
                 ),
-                style: widget.itemStyle != null
-                    ? widget.itemStyle
-                    : TextStyle(fontSize: 14),
+                style: widget.itemStyle ?? TextStyle(fontSize: 14),
                 controller: textController,
               ),
             ),
@@ -250,9 +243,7 @@ class _SearchDialogState<T> extends State<SearchDialog> {
                                 vertical: 10, horizontal: 18),
                             child: Text(
                               filteredList[index].toString(),
-                              style: widget.itemStyle != null
-                                  ? widget.itemStyle
-                                  : TextStyle(fontSize: 14),
+                              style: widget.itemStyle ?? TextStyle(fontSize: 14),
                             ),
                           ));
                     }),
@@ -307,10 +298,10 @@ class CustomDialog extends StatelessWidget {
   final BoxConstraints constraints;
 
   Color _getColor(BuildContext context) {
-    return Theme.of(context).dialogBackgroundColor;
+    return DialogTheme.of(context).backgroundColor ??
+        Theme.of(context).colorScheme.surface;
   }
 
-  // TODO(johnsonmh): Update default dialog border radius to 4.0 to match material spec.
   static const RoundedRectangleBorder _defaultDialogShape =
       RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(2.0)));
@@ -336,8 +327,8 @@ class CustomDialog extends StatelessWidget {
               elevation: 15.0,
               color: _getColor(context),
               type: MaterialType.card,
-              child: child,
               shape: shape ?? dialogTheme.shape ?? _defaultDialogShape,
+              child: child,
             ),
           ),
         ),

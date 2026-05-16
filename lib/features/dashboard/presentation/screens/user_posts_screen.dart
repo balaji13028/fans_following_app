@@ -40,11 +40,22 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
   }
 
   String _formatTimeAgo(DateTime dateTime) {
-    final diff = DateTime.now().difference(dateTime);
-    if (diff.inDays > 0) return '${diff.inDays}d ago';
-    if (diff.inHours > 0) return '${diff.inHours}h ago';
-    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
-    return 'Just now';
+    final difference = DateTime.now().difference(dateTime);
+    if (difference.inDays > 365) {
+      return '${(difference.inDays / 365).floor()}y ago';
+    } else if (difference.inDays > 30) {
+      return '${(difference.inDays / 30).floor()}mo ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inSeconds > 5) {
+      return '${difference.inSeconds}s ago';
+    } else {
+      return 'just now';
+    }
   }
 
   String _formatCount(int count) {
@@ -285,9 +296,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    _formatTimeAgo(
-                      DateTime.now().subtract(const Duration(hours: 4)),
-                    ), // Mocking for now
+                    _formatTimeAgo(post.postedOn),
                     style: const TextStyle(color: Colors.white60, fontSize: 13),
                   ),
                 ],

@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../data/services/home_service.dart';
+import '../../../../core/services/api_service.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -10,10 +13,32 @@ class AddPostScreen extends StatefulWidget {
 
 class _AddPostScreenState extends State<AddPostScreen> {
   final HomeService _homeService = HomeService();
+  final ApiService _apiService = ApiService();
+  final ImagePicker _picker = ImagePicker();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  
+  File? _selectedImage;
   bool _isLoading = false;
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
 
   Future<void> _submitPost() async {
     if (_titleController.text.isEmpty || _descriptionController.text.isEmpty) {
@@ -28,13 +53,17 @@ class _AddPostScreenState extends State<AddPostScreen> {
     try {
       final tags = _tagsController.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
       
-      await _homeService.createPost({
+      final Map<String, dynamic> postData = {
         'title': _titleController.text,
         'tags': tags,
         'description': _descriptionController.text,
-        // For now, we'll mock an image if needed, or leave it null
-        'image': 'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?q=80&w=2069&auto=format&fit=crop',
-      });
+      };
+
+      if (_selectedImage != null) {
+        postData['image'] = await _apiService.createMultipartFile(_selectedImage!.path);
+      }
+      
+      await _homeService.createPost(postData);
 
       if (mounted) {
         Navigator.pop(context, true);
@@ -75,38 +104,51 @@ class _AddPostScreenState extends State<AddPostScreen> {
           children: [
             const Text('Media (optional)', style: TextStyle(color: Colors.white70, fontSize: 14)),
             const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              height: 180,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white10, style: BorderStyle.solid),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Drag & drop images or videos',
-                    style: TextStyle(color: Colors.white38, fontSize: 14),
-                  ),
-                  const Text(
-                    'Videos must be under 1 minute. Or click to\nchoose files.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white24, fontSize: 12),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add media'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2A2A2A),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
-                ],
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white10),
+                  image: _selectedImage != null
+                      ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
+                      : null,
+                ),
+                child: _selectedImage == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.add_photo_alternate_outlined, color: Colors.white38, size: 40),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Click to select image',
+                            style: TextStyle(color: Colors.white38, fontSize: 14),
+                          ),
+                          const Text(
+                            'Supported formats: JPG, PNG',
+                            style: TextStyle(color: Colors.white24, fontSize: 12),
+                          ),
+                        ],
+                      )
+                    : Stack(
+                        children: [
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () => setState(() => _selectedImage = null),
+                              child: CircleAvatar(
+                                radius: 14,
+                                backgroundColor: Colors.black.withValues(alpha: 0.6),
+                                child: const Icon(Icons.close, color: Colors.white, size: 16),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
             const SizedBox(height: 24),
@@ -134,7 +176,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _submitPost,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800],
+                      backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

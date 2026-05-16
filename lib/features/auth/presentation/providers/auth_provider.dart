@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/data_sources/auth_remote_data_source.dart';
 import '../../data/models/user_model.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/services/push_notification_service.dart';
 
 part 'auth_provider.g.dart';
 
@@ -73,17 +75,17 @@ class AuthNotifier extends _$AuthNotifier {
     );
   }
 
-  /// Sign in
-  Future<void> signIn({
-    required String email,
+  /// User Login (Mobile + Password)
+  Future<void> userLogin({
+    required String mobileNumber,
     required String password,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
       final repository = ref.read(authRepositoryProvider);
-      final user = await repository.signIn(
-        email: email,
+      final user = await repository.userLogin(
+        mobileNumber: mobileNumber,
         password: password,
       );
 
@@ -109,10 +111,12 @@ class AuthNotifier extends _$AuthNotifier {
       final repository = ref.read(authRepositoryProvider);
       final response = await repository.sendOtp(mobileNumber);
       state = state.copyWith(isLoading: false);
-      
+
       // Try to extract OTP from response, it could be in 'otp' or 'data.otp'
-      final otp = response['otp']?.toString() ?? 
-                  (response['data'] is Map ? response['data']['otp']?.toString() : null);
+      final otp = response['otp']?.toString() ??
+          (response['data'] is Map
+              ? response['data']['otp']?.toString()
+              : null);
       return otp;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -129,11 +133,17 @@ class AuthNotifier extends _$AuthNotifier {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(authRepositoryProvider);
-      
+
+      // 0. Get FCM Token
+      final fcmToken = await PushNotificationService.getToken();
+      debugPrint('FCM Token retrieved: ${fcmToken != null ? "YES" : "NO"}');
+
       // 1. Verify OTP to get token
       final user = await repository.verifyOtp(
         mobileNumber: mobileNumber,
         otp: otp,
+        fcmToken: fcmToken,
+        password: userDetails['password'],
       );
 
       // 2. Update user details
@@ -218,5 +228,42 @@ class AuthNotifier extends _$AuthNotifier {
   void clearError() {
     state = state.copyWith(error: null);
   }
-}
 
+  /// Initialize FCM Token for logged-in user
+  Future<void> initializeFcmToken() async {
+    if (!state.isAuthenticated) return;
+    
+    try {
+      final token = await PushNotificationService.getToken();
+      if (token != null) {
+        final repository = ref.read(authRepositoryProvider);
+        await repository.registerFcmToken(token);
+      }
+    } catch (e) {
+      // Ignore FCM registration errors during initialization
+      debugPrint('FCM registration failed: $e');
+    }
+  }
+
+  /// Upload Profile Image
+  Future<void> uploadProfileImage(String filePath) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final repository = ref.read(authRepositoryProvider);
+      final userId = state.user?.id;
+      if (userId == null) return;
+
+      await repository.uploadProfileImage(
+        userId: userId,
+        filePath: filePath,
+      );
+
+      // Refresh to get latest data (including presigned URL)
+      await refreshUser();
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+}
