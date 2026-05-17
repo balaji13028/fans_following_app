@@ -1,6 +1,7 @@
+import 'package:aa_fans/features/on_boarding/on_boarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../on_boarding/on_boarding_screen.dart';
+import '../auth/presentation/screens/sign_in_screen.dart';
 import '../dashboard/presentation/screens/dashboard_screen.dart';
 import '../../core/services/storage_service.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -21,11 +22,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _controller.forward();
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+
+    _controller.forward().then((_) {
+      _controller.reverse();
+    });
+
     _navigateToNext();
   }
 
@@ -43,17 +48,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       } catch (e) {
         // ignore error and proceed
       }
-      
+
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const DashboardScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
         );
       }
     } else {
-      // Not logged in, go to onboarding
+      // Not logged in, go to login
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const OnboardingScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
         );
       }
     }
@@ -72,44 +93,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       body: Center(
         child: FadeTransition(
           opacity: _animation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Image.asset(
-                  'assets/logo/aa.png',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'ALLU ARJUN',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
-              ),
-              const Text(
-                'FANS ASSOCIATION',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ],
-          ),
+          child: Image.asset('assets/images/splash.webp', fit: BoxFit.contain),
         ),
       ),
     );

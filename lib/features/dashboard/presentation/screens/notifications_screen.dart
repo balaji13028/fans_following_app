@@ -92,85 +92,102 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ),
         ),
       ),
-      body: feedItems.isEmpty && isLoading
-          ? ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 140),
-              itemCount: 5,
-              itemBuilder: (_, __) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Skeleton(height: 350, borderRadius: 12, width: double.infinity),
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: () => ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true),
-              child: ListView.builder(
-                controller: _scrollController,
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true),
+        child: feedItems.isEmpty && isLoading
+            ? ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.only(top: 8, bottom: 140),
-                itemCount: feedItems.length + (hasMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == feedItems.length) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24.0),
-                      child: Center(
-                        child: CircularProgressIndicator(color: Colors.white70),
-                      ),
-                    );
-                  }
+                itemCount: 5,
+                itemBuilder: (_, __) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Skeleton(height: 350, borderRadius: 12, width: double.infinity),
+                ),
+              )
+            : (!isLoading && feedItems.isEmpty)
+                ? LayoutBuilder(
+                    builder: (context, constraints) => ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(height: constraints.maxHeight * 0.4),
+                        const Center(
+                          child: Text(
+                            'No data found',
+                            style: TextStyle(color: Colors.white70, fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 8, bottom: 140),
+                    itemCount: feedItems.length + (hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == feedItems.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(
+                            child: CircularProgressIndicator(color: Colors.white70),
+                          ),
+                        );
+                      }
 
-                  final item = feedItems[index];
-                  if (item is EventModel) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EventDetailScreen(event: item),
+                      final item = feedItems[index];
+                      if (item is EventModel) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EventDetailScreen(event: item),
+                              ),
+                            );
+                          },
+                          child: _buildNotificationCard(
+                            id: item.id,
+                            type: 'event',
+                            title: item.name,
+                            hashtags: [
+                              '#TFC',
+                              '#NewEvent',
+                            ], // Mocking hashtags for now
+                            description:
+                                'Join us for ${item.name} at ${item.location ?? "TBA"}.',
+                            imageUrl: item.imageUrl,
+                            likesCount: item.likesCount,
+                            createdAt: item.createdAt,
+                            isLiked: item.isLiked,
                           ),
                         );
-                      },
-                      child: _buildNotificationCard(
-                        id: item.id,
-                        type: 'event',
-                        title: item.name,
-                        hashtags: [
-                          '#TFC',
-                          '#NewEvent',
-                        ], // Mocking hashtags for now
-                        description:
-                            'Join us for ${item.name} at ${item.location ?? "TBA"}.',
-                        imageUrl: item.imageUrl,
-                        likesCount: item.likesCount,
-                        createdAt: item.createdAt,
-                        isLiked: item.isLiked,
-                      ),
-                    );
-                  } else if (item is PostModel) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PostDetailScreen(post: item),
+                      } else if (item is PostModel) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PostDetailScreen(post: item),
+                              ),
+                            );
+                          },
+                          child: _buildNotificationCard(
+                            id: item.id,
+                            type: 'post',
+                            title: item.title,
+                            hashtags: item.tags.map((t) => '#$t').toList(),
+                            description: item.description,
+                            imageUrl: item.imageUrl,
+                            likesCount: item.likesCount,
+                            createdAt: item.postedOn,
+                            isLiked: item.isLiked,
                           ),
                         );
-                      },
-                      child: _buildNotificationCard(
-                        id: item.id,
-                        type: 'post',
-                        title: item.title,
-                        hashtags: item.tags.map((t) => '#$t').toList(),
-                        description: item.description,
-                        imageUrl: item.imageUrl,
-                        likesCount: item.likesCount,
-                        createdAt: item.postedOn,
-                        isLiked: item.isLiked,
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ),
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+      ),
     );
   }
 
@@ -229,8 +246,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               child: Image.network(
                 imageUrl,
                 width: double.infinity,
-                height: 180,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),

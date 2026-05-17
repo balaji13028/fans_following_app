@@ -44,10 +44,12 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     state = state.copyWith(isLoading: true);
     try {
       final data = await _homeService.getDashboardData();
-      state = DashboardState(
+      state = state.copyWith(
         events: data['events'],
         posts: data['posts'],
-        socialLinks: data['socialMedia'],
+        socialLinks: state.socialLinks.isNotEmpty
+            ? state.socialLinks
+            : data['socialMedia'],
         isLoading: false,
       );
     } catch (e) {
@@ -86,7 +88,9 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       final isLiked = await _homeService.toggleLike(id, type);
       updateLikeLocal(id, type, isLiked);
       // Also update feed if it exists
-      _ref.read(feedNotifierProvider.notifier).updateLikeLocal(id, type, isLiked);
+      _ref
+          .read(feedNotifierProvider.notifier)
+          .updateLikeLocal(id, type, isLiked);
     } catch (e) {
       // Handle error
     }
@@ -95,8 +99,8 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
 final dashboardNotifierProvider =
     StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
-  return DashboardNotifier(ref.watch(homeServiceProvider), ref);
-});
+      return DashboardNotifier(ref.watch(homeServiceProvider), ref);
+    });
 
 class FeedState {
   final List<dynamic> items;
@@ -143,11 +147,8 @@ class FeedNotifier extends StateNotifier<FeedState> {
     }
 
     try {
-      final result = await _homeService.getFeed(
-        page: currentPage,
-        limit: 15,
-      );
-      
+      final result = await _homeService.getFeed(page: currentPage, limit: 15);
+
       final List<dynamic> newItems = (result['feed'] as List).map((item) {
         if (item['feedType'] == 'event') {
           return EventModel.fromJson(item);
@@ -197,14 +198,17 @@ class FeedNotifier extends StateNotifier<FeedState> {
       final isLiked = await _homeService.toggleLike(id, type);
       updateLikeLocal(id, type, isLiked);
       // Also update dashboard if it exists
-      _ref.read(dashboardNotifierProvider.notifier).updateLikeLocal(id, type, isLiked);
+      _ref
+          .read(dashboardNotifierProvider.notifier)
+          .updateLikeLocal(id, type, isLiked);
     } catch (e) {
       // Handle error
     }
   }
 }
 
-final feedNotifierProvider =
-    StateNotifierProvider<FeedNotifier, FeedState>((ref) {
+final feedNotifierProvider = StateNotifierProvider<FeedNotifier, FeedState>((
+  ref,
+) {
   return FeedNotifier(ref.watch(homeServiceProvider), ref);
 });

@@ -9,6 +9,7 @@ import 'edit_profile_screen.dart';
 import '../../../auth/presentation/screens/sign_in_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
+import '../../../../core/services/permission_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +31,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _pickAndUploadImage() async {
+    final hasPermission = await PermissionService.requestPhotoPermission(context);
+    if (!hasPermission) return;
+
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,

@@ -31,46 +31,47 @@ class EventDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.black,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 350,
-            pinned: true,
-            backgroundColor: Colors.black,
-            leading: Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                shape: BoxShape.circle,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Event Details',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (currentEvent.imageUrl != null)
+              CachedNetworkImage(
+                imageUrl: currentEvent.imageUrl!,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  height: 300,
+                  color: Colors.grey[900],
+                  child: const Center(child: CircularProgressIndicator(color: Colors.orange)),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  height: 300,
+                  color: Colors.grey[900],
+                  child: const Icon(Icons.error, color: Colors.white),
+                ),
+              )
+            else
+              Image.asset(
+                'assets/images/event_placeholder.png',
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: currentEvent.imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: currentEvent.imageUrl!,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[900],
-                        child: const Center(child: CircularProgressIndicator(color: Colors.orange)),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[900],
-                        child: const Icon(Icons.error, color: Colors.white),
-                      ),
-                    )
-                  : Image.asset(
-                      'assets/images/event_placeholder.png',
-                      fit: BoxFit.cover,
-                    ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
+            
+            Padding(
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -82,7 +83,7 @@ class EventDetailScreen extends ConsumerWidget {
                           currentEvent.name,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 28,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -133,12 +134,12 @@ class EventDetailScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   const Text(
                     'About Event',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -151,12 +152,12 @@ class EventDetailScreen extends ConsumerWidget {
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

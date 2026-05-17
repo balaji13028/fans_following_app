@@ -34,7 +34,8 @@ class UserModel {
       id: (json['publicId'] ?? json['id'] ?? '') as String,
       email: json['email'] as String?,
       name: json['name'] as String?,
-      profileImageUrl: (json['profileImage'] ?? json['profileImageUrl']) as String?,
+      profileImageUrl:
+          (json['profileImage'] ?? json['profileImageUrl']) as String?,
       dob: json['dob'] as String?,
       mobile: (json['mobile'] ?? json['mobileNumber']) as String?,
       facebookId: json['facebookId'] as String?,
@@ -43,7 +44,9 @@ class UserModel {
       state: json['state'] as String?,
       district: json['district'] as String?,
       isPostCreator: (json['isPostCreator'] ?? false) as bool,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,
     );
   }
 

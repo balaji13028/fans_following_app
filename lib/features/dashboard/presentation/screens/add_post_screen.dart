@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../data/services/home_service.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../core/services/permission_service.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -23,6 +24,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
+    final hasPermission = await PermissionService.requestPhotoPermission(context);
+    if (!hasPermission) return;
+
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
