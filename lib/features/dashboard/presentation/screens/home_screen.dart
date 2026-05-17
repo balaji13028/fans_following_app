@@ -1,9 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../feed/data/models/social_link_model.dart';
+import '../../../feed/presentation/screens/event_detail_screen.dart';
+import '../../../feed/presentation/screens/post_detail_screen.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/dashboard_provider.dart';
@@ -49,6 +52,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
+  String _formatEventDate(String dateStr) {
+    try {
+      final DateTime date = DateTime.parse(dateStr);
+      return DateFormat('dd-MMM, yyyy').format(date);
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
@@ -64,7 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           backgroundColor: Colors.black,
           elevation: 0,
           centerTitle: true,
-          title: Image.asset('assets/logo/aa.png', height: 35),
+          title: Image.asset('assets/logo/aa.png', height: 60),
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -73,7 +85,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Skeleton(height: 220, borderRadius: 16, width: double.infinity),
+                child: Skeleton(
+                  height: 220,
+                  borderRadius: 16,
+                  width: double.infinity,
+                ),
               ),
               const SizedBox(height: 36),
               const Padding(
@@ -103,7 +119,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 3,
                 (index) => Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Skeleton(height: 300, borderRadius: 16, width: double.infinity),
+                  child: Skeleton(
+                    height: 300,
+                    borderRadius: 16,
+                    width: double.infinity,
+                  ),
                 ),
               ),
             ],
@@ -118,10 +138,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
-        title: Image.asset(
-          'assets/logo/aa.png',
-          height: 35,
-        ),
+        title: Image.asset('assets/logo/aa.png', height: 50),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -129,9 +146,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               radius: 18,
               backgroundImage: (authState.user?.profileImageUrl != null)
                   ? NetworkImage(authState.user!.profileImageUrl!)
-                  : const AssetImage(
-                      'assets/images/profile_placeholder.png',
-                    ) as ImageProvider,
+                  : const AssetImage('assets/images/profile_placeholder.png')
+                        as ImageProvider,
               backgroundColor: Colors.grey[800],
             ),
           ),
@@ -157,83 +173,103 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         setState(() => _currentEventIndex = index),
                     itemBuilder: (context, index) {
                       final event = events[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          image: DecorationImage(
-                            image: event.imageUrl != null
-                                ? NetworkImage(event.imageUrl!)
-                                : const AssetImage(
-                                        'assets/images/event_placeholder.png',
-                                      )
-                                    as ImageProvider,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EventDetailScreen(event: event),
+                            ),
+                          );
+                        },
                         child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.8),
-                              ],
+                            image: DecorationImage(
+                              image: event.imageUrl != null
+                                  ? NetworkImage(event.imageUrl!)
+                                  : const AssetImage(
+                                          'assets/images/event_placeholder.png',
+                                        )
+                                        as ImageProvider,
+                              fit: BoxFit.cover,
                             ),
                           ),
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          event.name,
-                                          style: const TextStyle(
-                                            color: Colors.orange,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '${event.location ?? "TBA"} • ${event.date}',
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () => ref
-                                        .read(
-                                          dashboardNotifierProvider.notifier,
-                                        )
-                                        .toggleLike(event.id, 'event'),
-                                    icon: Icon(
-                                      event.isLiked
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      color: event.isLiked
-                                          ? Colors.red
-                                          : Colors.white,
-                                    ),
-                                  ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.8),
                                 ],
                               ),
-                            ],
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            event.name,
+                                            style: const TextStyle(
+                                              color: Colors.orange,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            event.location ?? "TBA",
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${_formatEventDate(event.date)}  •  ${event.time}',
+                                            style: const TextStyle(
+                                              color: Colors.white60,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => ref
+                                          .read(
+                                            dashboardNotifierProvider.notifier,
+                                          )
+                                          .toggleLike(event.id, 'event'),
+                                      icon: Icon(
+                                        event.isLiked
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: event.isLiked
+                                            ? Colors.red
+                                            : Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -312,12 +348,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                const Color(
-                                  0xFF1A1A1A,
-                                ).withValues(alpha: 0.9),
-                                const Color(
-                                  0xFF1A1A1A,
-                                ).withValues(alpha: 0.5),
+                                const Color(0xFF1A1A1A).withValues(alpha: 0.9),
+                                const Color(0xFF1A1A1A).withValues(alpha: 0.5),
                               ],
                             ),
                             border: Border.all(
@@ -335,10 +367,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: 8,
-                                sigmaY: 8,
-                              ),
+                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                               child: Center(child: _buildSocialImage(link)),
                             ),
                           ),
@@ -370,10 +399,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 itemBuilder: (context, index) {
                   final post = posts[index];
                   return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PostDetailScreen(post: post),
+                        ),
+                      );
+                    },
                     onDoubleTap: () => ref
-                        .read(
-                          dashboardNotifierProvider.notifier,
-                        )
+                        .read(dashboardNotifierProvider.notifier)
                         .toggleLike(post.id, 'post'),
                     child: Container(
                       margin: const EdgeInsets.symmetric(
@@ -470,7 +505,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(16),
                               ),
-                              child: VideoPlayerWidget(videoUrl: post.videoUrl!),
+                              child: VideoPlayerWidget(
+                                videoUrl: post.videoUrl!,
+                              ),
                             )
                           else if (post.imageUrl != null)
                             ClipRRect(
@@ -494,8 +531,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 errorWidget: (context, url, error) => Container(
                                   height: 200,
                                   color: Colors.grey[800],
-                                  child:
-                                      const Icon(Icons.error, color: Colors.white),
+                                  child: const Icon(
+                                    Icons.error,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),

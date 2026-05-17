@@ -38,13 +38,28 @@ class AuthRepository {
 
   /// Sign up user
   Future<UserModel> signUp({
-    required String email,
-    required String password,
-    required String name,
+    required Map<String, dynamic> data,
   }) async {
-    throw UnimplementedError('Use sendOtp and verifyOtp instead');
+    try {
+      final response = await _remoteDataSource.userSignUp(data: data);
+
+      final token = response['token'] as String;
+      final userData = response['user'] as Map<String, dynamic>;
+
+      await StorageService.saveAuthToken(token);
+      await StorageService.saveUserData(userData);
+      await StorageService.saveUserId(
+        userData['publicId'] ?? userData['id'] as String,
+      );
+      await StorageService.setLoggedIn(true);
+
+      return UserModel.fromJson(userData);
+    } catch (e) {
+      rethrow;
+    }
   }
 
+  /* Deprecated: OTP verification is removed
   /// Send OTP
   Future<Map<String, dynamic>> sendOtp(String mobileNumber) async {
     return await _remoteDataSource.sendOtp(mobileNumber: mobileNumber);
@@ -80,6 +95,7 @@ class AuthRepository {
       rethrow;
     }
   }
+  */
 
   /// Register FCM Token
   Future<void> registerFcmToken(String fcmToken) async {

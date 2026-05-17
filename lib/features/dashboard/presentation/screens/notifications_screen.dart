@@ -4,6 +4,8 @@ import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../providers/dashboard_provider.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../../../feed/presentation/screens/event_detail_screen.dart';
+import '../../../feed/presentation/screens/post_detail_screen.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -117,32 +119,52 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
                   final item = feedItems[index];
                   if (item is EventModel) {
-                    return _buildNotificationCard(
-                      id: item.id,
-                      type: 'event',
-                      title: item.name,
-                      hashtags: [
-                        '#TFC',
-                        '#NewEvent',
-                      ], // Mocking hashtags for now
-                      description:
-                          'Join us for ${item.name} at ${item.location ?? "TBA"}.',
-                      imageUrl: item.imageUrl,
-                      likesCount: item.likesCount,
-                      createdAt: item.createdAt,
-                      isLiked: item.isLiked,
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EventDetailScreen(event: item),
+                          ),
+                        );
+                      },
+                      child: _buildNotificationCard(
+                        id: item.id,
+                        type: 'event',
+                        title: item.name,
+                        hashtags: [
+                          '#TFC',
+                          '#NewEvent',
+                        ], // Mocking hashtags for now
+                        description:
+                            'Join us for ${item.name} at ${item.location ?? "TBA"}.',
+                        imageUrl: item.imageUrl,
+                        likesCount: item.likesCount,
+                        createdAt: item.createdAt,
+                        isLiked: item.isLiked,
+                      ),
                     );
                   } else if (item is PostModel) {
-                    return _buildNotificationCard(
-                      id: item.id,
-                      type: 'post',
-                      title: item.title,
-                      hashtags: item.tags.map((t) => '#$t').toList(),
-                      description: item.description,
-                      imageUrl: item.imageUrl,
-                      likesCount: item.likesCount,
-                      createdAt: item.postedOn,
-                      isLiked: item.isLiked,
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PostDetailScreen(post: item),
+                          ),
+                        );
+                      },
+                      child: _buildNotificationCard(
+                        id: item.id,
+                        type: 'post',
+                        title: item.title,
+                        hashtags: item.tags.map((t) => '#$t').toList(),
+                        description: item.description,
+                        imageUrl: item.imageUrl,
+                        likesCount: item.likesCount,
+                        createdAt: item.postedOn,
+                        isLiked: item.isLiked,
+                      ),
                     );
                   }
                   return const SizedBox.shrink();

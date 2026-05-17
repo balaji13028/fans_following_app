@@ -25,6 +25,22 @@ class AuthRemoteDataSource {
     }
   }
 
+  /// Sign up user
+  Future<Map<String, dynamic>> userSignUp({
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        AppConstants.userSignUpEndpoint,
+        data: data,
+      );
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /* Deprecated: OTP verification is removed
   /// Send OTP
   Future<Map<String, dynamic>> sendOtp({required String mobileNumber}) async {
     try {
@@ -60,6 +76,7 @@ class AuthRemoteDataSource {
       rethrow;
     }
   }
+  */
 
   /// Update User Details
   Future<void> updateUserDetails({

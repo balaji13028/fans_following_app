@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import 'sign_up_screen.dart';
-// import 'otp_screen.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../dashboard/presentation/screens/dashboard_screen.dart';
@@ -46,23 +45,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         final mobileNumber =
             '+${_selectedCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
         final password = _passwordController.text;
-
-        /* Commented out OTP flow
-        final serverOtp = await ref.read(authNotifierProvider.notifier).sendOtp(mobileNumber);
-
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OtpScreen(
-                mobileNumber: mobileNumber,
-                isLogin: true, 
-                serverOtp: serverOtp,
-              ),
-            ),
-          );
-        }
-        */
 
         // Password based login
         await ref

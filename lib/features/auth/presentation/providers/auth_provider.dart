@@ -104,26 +104,57 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
+  /* Deprecated: OTP verification is removed
   /// Send OTP
   Future<String?> sendOtp(String mobileNumber) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(authRepositoryProvider);
-      final response = await repository.sendOtp(mobileNumber);
+      // final response = await repository.sendOtp(mobileNumber); // Removed from repository
       state = state.copyWith(isLoading: false);
-
-      // Try to extract OTP from response, it could be in 'otp' or 'data.otp'
-      final otp = response['otp']?.toString() ??
-          (response['data'] is Map
-              ? response['data']['otp']?.toString()
-              : null);
-      return otp;
+      return null;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
     }
   }
+  */
 
+  /// User Sign Up
+  Future<void> userSignUp({
+    required Map<String, dynamic> userDetails,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final repository = ref.read(authRepositoryProvider);
+
+      // Get FCM Token
+      final fcmToken = await PushNotificationService.getToken();
+      final data = {
+        ...userDetails,
+        'mobileNumber': userDetails['mobile'],
+        'fcmToken': fcmToken,
+      };
+
+      final user = await repository.signUp(data: data);
+
+      state = state.copyWith(
+        user: user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      rethrow;
+    }
+  }
+
+  /* Deprecated: OTP verification is removed
   /// Verify OTP and Update Details
   Future<void> verifyOtpAndUpdateDetails({
     required String mobileNumber,
@@ -166,6 +197,7 @@ class AuthNotifier extends _$AuthNotifier {
       rethrow;
     }
   }
+  */
 
   /// Sign out
   Future<void> signOut() async {

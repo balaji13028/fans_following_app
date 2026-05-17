@@ -5,8 +5,8 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/date_picker_field.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:csc_picker/csc_picker.dart';
-import 'otp_screen.dart';
 import 'package:country_picker/country_picker.dart';
+import '../../../dashboard/presentation/screens/dashboard_screen.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -106,38 +106,36 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       try {
         final mobile = '+${_selectedPhoneCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
 
-        // 1. Send OTP
-        final serverOtp = await ref.read(authNotifierProvider.notifier).sendOtp(mobile);
+        // Prepare user details
+        final userDetails = {
+          'name': _nameController.text.trim(),
+          'dob': _selectedDateOfBirth?.toIso8601String(),
+          'country': _selectedCountry,
+          'state': _selectedState,
+          'district': _selectedDistrict,
+          'mobile': mobile,
+          'email': _emailController.text.trim(),
+          'instagramId': _instagramController.text.trim(),
+          'facebookId': _facebookController.text.trim(),
+          'twitterId': _twitterController.text.trim(),
+          'password': _passwordController.text,
+        };
+
+        // Sign Up
+        await ref.read(authNotifierProvider.notifier).userSignUp(userDetails: userDetails);
 
         if (mounted) {
-          // 2. Prepare user details
-          final userDetails = {
-            'name': _nameController.text.trim(),
-            'dob': _selectedDateOfBirth?.toIso8601String(),
-            'country': _selectedCountry,
-            'state': _selectedState,
-            'district': _selectedDistrict,
-            'mobile': mobile,
-            'email': _emailController.text.trim(),
-            'instagramId': _instagramController.text.trim(),
-            'facebookId': _facebookController.text.trim(),
-            'twitterId': _twitterController.text.trim(),
-            'password': _passwordController.text,
-          };
-
-          // 3. Navigate to OTP screen
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) =>
-                  OtpScreen(mobileNumber: mobile, userDetails: userDetails, serverOtp: serverOtp),
-            ),
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+            (route) => false,
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to send OTP: ${e.toString()}'),
+              content: Text('Sign up failed: ${e.toString()}'),
               behavior: SnackBarBehavior.floating,
               backgroundColor: AppColors.error,
             ),

@@ -226,7 +226,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildDetailRow(
                           'Mobile Number',
                           user?.mobile ?? '-',
-                          isVerified: true,
                         ),
                         _buildDetailRow('Facebook ID', user?.facebookId ?? '-'),
                         _buildDetailRow(
@@ -327,7 +326,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     ),
                                     const SizedBox(height: 12),
                                     const Text(
-                                      'Are you sure you want to log out? You will need to verify your number again.',
+                                      'Are you sure you want to log out?',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white70,
@@ -461,9 +460,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildDetailRow(
     String label,
-    String value, {
-    bool isVerified = false,
-  }) {
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -494,17 +492,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (isVerified && value != '-' && value.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Verified',
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
