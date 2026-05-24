@@ -1,3 +1,5 @@
+import '../../../../core/constants/app_constants.dart';
+
 class UserModel {
   final String id;
   final String? email;
@@ -34,8 +36,8 @@ class UserModel {
       id: (json['publicId'] ?? json['id'] ?? '') as String,
       email: json['email'] as String?,
       name: json['name'] as String?,
-      profileImageUrl:
-          (json['profileImage'] ?? json['profileImageUrl']) as String?,
+      profileImageUrl: _getFullImageUrl(
+          (json['profileImage'] ?? json['profileImageUrl']) as String?),
       dob: json['dob'] as String?,
       mobile: (json['mobile'] ?? json['mobileNumber']) as String?,
       facebookId: json['facebookId'] as String?,
@@ -66,5 +68,17 @@ class UserModel {
       'isPostCreator': isPostCreator,
       'createdAt': createdAt?.toIso8601String(),
     };
+  }
+
+  static String? _getFullImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    final baseUrl = AppConstants.baseUrl.endsWith('/')
+        ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+        : AppConstants.baseUrl;
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return '$baseUrl/$cleanPath';
   }
 }

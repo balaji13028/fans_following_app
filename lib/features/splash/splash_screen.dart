@@ -38,10 +38,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
-    final token = StorageService.authToken;
-    final isLoggedIn = StorageService.isLoggedIn;
+    final isAuthenticated = ref.read(authNotifierProvider).isAuthenticated;
 
-    if (token != null && isLoggedIn) {
+    if (isAuthenticated) {
       // User is logged in, fetch user data and go to dashboard
       try {
         await ref.read(authNotifierProvider.notifier).refreshUser();

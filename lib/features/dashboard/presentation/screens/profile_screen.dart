@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../../../../core/widgets/skeleton.dart';
@@ -31,7 +32,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _pickAndUploadImage() async {
-    final hasPermission = await PermissionService.requestPhotoPermission(context);
+    final hasPermission = await PermissionService.requestPhotoPermission(
+      context,
+    );
     if (!hasPermission) return;
 
     try {
@@ -46,7 +49,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           sourcePath: image.path,
           compressFormat: ImageCompressFormat.jpg,
           compressQuality: 70,
-          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1), // Square aspect ratio
+          aspectRatio: const CropAspectRatio(
+            ratioX: 1,
+            ratioY: 1,
+          ), // Square aspect ratio
           uiSettings: [
             AndroidUiSettings(
               toolbarTitle: 'Crop Profile Photo',
@@ -96,8 +102,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
-    final user = authState.user;
+    final user = ref.watch(authNotifierProvider.select((state) => state.user));
+    final isLoading = ref.watch(
+      authNotifierProvider.select((state) => state.isLoading),
+    );
+
+    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${next.error}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        ref.read(authNotifierProvider.notifier).clearError();
+      }
+    });
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -128,19 +148,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: authState.isLoading && user == null
+      body: isLoading && user == null
           ? SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  const Center(child: Skeleton(height: 100, width: 100, borderRadius: 50)),
+                  const Center(
+                    child: Skeleton(height: 100, width: 100, borderRadius: 50),
+                  ),
                   const SizedBox(height: 16),
                   const Center(child: Skeleton(height: 25, width: 150)),
                   const SizedBox(height: 40),
-                  ...List.generate(6, (index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Skeleton(height: 50, width: double.infinity),
-                  )),
+                  ...List.generate(
+                    6,
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Skeleton(height: 50, width: double.infinity),
+                    ),
+                  ),
                 ],
               ),
             )
@@ -155,20 +180,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.orange.withValues(alpha: 0.2), width: 2),
+                            border: Border.all(
+                              color: Colors.orange.withValues(alpha: 0.2),
+                              width: 2,
+                            ),
                           ),
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage: user?.profileImageUrl != null
-                                ? NetworkImage(user!.profileImageUrl!)
-                                : const AssetImage(
+                          child: ClipOval(
+                            child: Container(
+                              color: Colors.grey[800],
+                              width: 100, // radius 50 * 2
+                              height: 100,
+                              child: user?.profileImageUrl != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: user!.profileImageUrl!,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, url, error) => Image.asset(
                                         'assets/images/profile_placeholder.png',
-                                      )
-                                    as ImageProvider,
-                            backgroundColor: Colors.grey[800],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      'assets/images/profile_placeholder.png',
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
                           ),
                         ),
-                        if (authState.isLoading)
+                        if (isLoading)
                           Positioned.fill(
                             child: Container(
                               decoration: BoxDecoration(
@@ -187,13 +225,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           bottom: 0,
                           right: 0,
                           child: GestureDetector(
-                            onTap: authState.isLoading ? null : _pickAndUploadImage,
+                            onTap: isLoading ? null : _pickAndUploadImage,
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: Colors.orange,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.black, width: 2),
+                                border: Border.all(
+                                  color: Colors.black,
+                                  width: 2,
+                                ),
                               ),
                               child: const Icon(
                                 Icons.camera_alt,
@@ -227,10 +268,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           user?.dob != null ? _formatDate(user!.dob!) : '-',
                         ),
                         _buildDetailRow('Email Address', user?.email ?? '-'),
-                        _buildDetailRow(
-                          'Mobile Number',
-                          user?.mobile ?? '-',
-                        ),
+                        _buildDetailRow('Mobile Number', user?.mobile ?? '-'),
                         _buildDetailRow('Facebook ID', user?.facebookId ?? '-'),
                         _buildDetailRow(
                           'Instagram ID',
@@ -310,7 +348,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
-                                        color: Colors.orange.withValues(alpha: 0.1),
+                                        color: Colors.orange.withValues(
+                                          alpha: 0.1,
+                                        ),
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
@@ -343,15 +383,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       children: [
                                         Expanded(
                                           child: OutlinedButton(
-                                            onPressed: () =>
-                                                Navigator.of(dialogContext).pop(),
+                                            onPressed: () => Navigator.of(
+                                              dialogContext,
+                                            ).pop(),
                                             style: OutlinedButton.styleFrom(
                                               side: const BorderSide(
                                                 color: Colors.white24,
                                               ),
-                                              padding: const EdgeInsets.symmetric(
-                                                vertical: 14,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 14,
+                                                  ),
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(12),
@@ -373,7 +415,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                               Navigator.of(dialogContext).pop();
                                               try {
                                                 await ref
-                                                    .read(authNotifierProvider.notifier)
+                                                    .read(
+                                                      authNotifierProvider
+                                                          .notifier,
+                                                    )
                                                     .signOut();
                                                 if (context.mounted) {
                                                   Navigator.of(
@@ -404,9 +449,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                               backgroundColor: Colors.redAccent,
                                               foregroundColor: Colors.white,
                                               elevation: 0,
-                                              padding: const EdgeInsets.symmetric(
-                                                vertical: 14,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 14,
+                                                  ),
                                               shape: RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(12),
@@ -462,10 +508,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  Widget _buildDetailRow(
-    String label,
-    String value,
-  ) {
+  Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

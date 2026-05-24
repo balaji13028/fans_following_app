@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
@@ -11,11 +13,13 @@ class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final ScrollController _scrollController = ScrollController();
+  DateTime? _lastBackPressTime;
 
   @override
   void initState() {
@@ -32,6 +36,30 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onPopInvoked(bool didPop, dynamic result) {
+    if (didPop) return;
+
+    final now = DateTime.now();
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      _lastBackPressTime = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Tap again to exit',
+            style: TextStyle(color: Colors.white),
+          ),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.black87,
+        ),
+      );
+      ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true);
+    } else {
+      SystemNavigator.pop();
+    }
   }
 
   void _onScroll() {
@@ -77,116 +105,132 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final hasMore = feedState.hasMore;
     final isLoading = feedState.isLoading;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _onPopInvoked,
+      child: Scaffold(
         backgroundColor: Colors.black,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'Updates',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          title: const Text(
+            'Updates',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true),
-        child: feedItems.isEmpty && isLoading
-            ? ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.only(top: 8, bottom: 140),
-                itemCount: 5,
-                itemBuilder: (_, __) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Skeleton(height: 350, borderRadius: 12, width: double.infinity),
-                ),
-              )
-            : (!isLoading && feedItems.isEmpty)
-                ? LayoutBuilder(
-                    builder: (context, constraints) => ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        SizedBox(height: constraints.maxHeight * 0.4),
-                        const Center(
-                          child: Text(
-                            'No data found',
-                            style: TextStyle(color: Colors.white70, fontSize: 16),
+        body: RefreshIndicator(
+          onRefresh: () =>
+              ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true),
+          child: feedItems.isEmpty && isLoading
+              ? ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 8, bottom: 140),
+                  itemCount: 5,
+                  itemBuilder: (_, __) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Skeleton(
+                      height: 350,
+                      borderRadius: 12,
+                      width: double.infinity,
+                    ),
+                  ),
+                )
+              : (!isLoading && feedItems.isEmpty)
+              ? LayoutBuilder(
+                  builder: (context, constraints) => ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: constraints.maxHeight * 0.4),
+                      const Center(
+                        child: Text(
+                          'No data found',
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 8, bottom: 140),
+                  itemCount: feedItems.length + (hasMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == feedItems.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 24.0),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white70,
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 8, bottom: 140),
-                    itemCount: feedItems.length + (hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == feedItems.length) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24.0),
-                          child: Center(
-                            child: CircularProgressIndicator(color: Colors.white70),
-                          ),
-                        );
-                      }
+                      );
+                    }
 
-                      final item = feedItems[index];
-                      if (item is EventModel) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EventDetailScreen(event: item),
-                              ),
-                            );
-                          },
-                          child: _buildNotificationCard(
-                            id: item.id,
-                            type: 'event',
-                            title: item.name,
-                            hashtags: [
-                              '#TFC',
-                              '#NewEvent',
-                            ], // Mocking hashtags for now
-                            description:
-                                'Join us for ${item.name} at ${item.location ?? "TBA"}.',
-                            imageUrl: item.imageUrl,
-                            likesCount: item.likesCount,
-                            createdAt: item.createdAt,
-                            isLiked: item.isLiked,
-                          ),
-                        );
-                      } else if (item is PostModel) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PostDetailScreen(post: item),
-                              ),
-                            );
-                          },
-                          child: _buildNotificationCard(
-                            id: item.id,
-                            type: 'post',
-                            title: item.title,
-                            hashtags: item.tags.map((t) => '#$t').toList(),
-                            description: item.description,
-                            imageUrl: item.imageUrl,
-                            likesCount: item.likesCount,
-                            createdAt: item.postedOn,
-                            isLiked: item.isLiked,
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
+                    final item = feedItems[index];
+                    if (item is EventModel) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  EventDetailScreen(event: item),
+                            ),
+                          );
+                        },
+                        child: _buildNotificationCard(
+                          id: item.id,
+                          type: 'event',
+                          title: item.name,
+                          hashtags: [
+                            '#TFC',
+                            '#NewEvent',
+                          ], // Mocking hashtags for now
+                          description:
+                              'Join us for ${item.name} at ${item.location ?? "TBA"}.',
+                          imageUrl: item.imageUrl,
+                          likesCount: item.likesCount,
+                          createdAt: item.createdAt,
+                          isLiked: item.isLiked,
+                        ),
+                      );
+                    } else if (item is PostModel) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  PostDetailScreen(post: item),
+                            ),
+                          );
+                        },
+                        child: _buildNotificationCard(
+                          id: item.id,
+                          type: 'post',
+                          title: item.title,
+                          hashtags: item.tags.map((t) => '#$t').toList(),
+                          description: item.description,
+                          imageUrl: item.imageUrl,
+                          likesCount: item.likesCount,
+                          createdAt: item.postedOn,
+                          isLiked: item.isLiked,
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+        ),
       ),
     );
   }
@@ -243,11 +287,26 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                imageUrl,
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
                 width: double.infinity,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                fadeInDuration: Duration.zero,
+                fadeOutDuration: Duration.zero,
+                placeholder: (context, url) => Container(
+                  height: 280,
+                  width: double.infinity,
+                  color: Colors.grey[800],
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: Colors.grey[800],
+                  child: const Icon(Icons.error, color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -258,7 +317,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () => ref.read(feedNotifierProvider.notifier).toggleLike(id, type),
+                    onTap: () => ref
+                        .read(feedNotifierProvider.notifier)
+                        .toggleLike(id, type),
                     child: Icon(
                       isLiked ? Icons.favorite : Icons.favorite_border,
                       color: isLiked ? Colors.red : Colors.white60,

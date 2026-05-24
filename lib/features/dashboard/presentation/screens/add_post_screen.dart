@@ -1,27 +1,24 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../data/services/home_service.dart';
-import '../../../../core/services/api_service.dart';
+import '../providers/add_post_provider.dart';
 import '../../../../core/services/permission_service.dart';
 
-class AddPostScreen extends StatefulWidget {
+class AddPostScreen extends ConsumerStatefulWidget {
   const AddPostScreen({super.key});
 
   @override
-  State<AddPostScreen> createState() => _AddPostScreenState();
+  ConsumerState<AddPostScreen> createState() => _AddPostScreenState();
 }
 
-class _AddPostScreenState extends State<AddPostScreen> {
-  final HomeService _homeService = HomeService();
-  final ApiService _apiService = ApiService();
+class _AddPostScreenState extends ConsumerState<AddPostScreen> {
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   
   File? _selectedImage;
-  bool _isLoading = false;
 
   Future<void> _pickImage() async {
     final hasPermission = await PermissionService.requestPhotoPermission(context);
@@ -52,41 +49,37 @@ class _AddPostScreenState extends State<AddPostScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final tags = _tagsController.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
 
-    try {
-      final tags = _tagsController.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
-      
-      final Map<String, dynamic> postData = {
-        'title': _titleController.text,
-        'tags': tags,
-        'description': _descriptionController.text,
-      };
-
-      if (_selectedImage != null) {
-        postData['image'] = await _apiService.createMultipartFile(_selectedImage!.path);
-      }
-      
-      await _homeService.createPost(postData);
-
-      if (mounted) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post submitted for approval!'), backgroundColor: Colors.green),
-        );
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    }
+    ref.read(addPostProvider.notifier).createPost(
+      title: _titleController.text,
+      description: _descriptionController.text,
+      tags: tags,
+      image: _selectedImage,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final addPostState = ref.watch(addPostProvider);
+    final _isLoading = addPostState.isLoading;
+
+    ref.listen<AddPostState>(addPostProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${next.error}')),
+        );
+        ref.read(addPostProvider.notifier).reset();
+      }
+      
+      if (next.isSuccess && !(previous?.isSuccess ?? false)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post submitted for approval!'), backgroundColor: Colors.green),
+        );
+        Navigator.pop(context, true);
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(

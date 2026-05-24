@@ -23,7 +23,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   String? _selectedState;
   String? _selectedDistrict;
 
-  bool _isLoading = false;
+
 
   @override
   void initState() {
@@ -90,7 +90,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    setState(() => _isLoading = true);
     try {
       final user = ref.read(authNotifierProvider).user;
       if (user == null) return;
@@ -123,17 +122,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         );
       }
     } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      // Error is handled by ref.listen
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authNotifierProvider.select((state) => state.isLoading));
+
+    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${next.error}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        ref.read(authNotifierProvider.notifier).clearError();
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -149,8 +157,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: _isLoading ? null : _saveProfile,
-            child: _isLoading
+            onPressed: isLoading ? null : _saveProfile,
+            child: isLoading
                 ? const SizedBox(
                     width: 20,
                     height: 20,

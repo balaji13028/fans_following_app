@@ -1,42 +1,23 @@
 import 'package:flutter/material.dart';
-import '../../data/services/home_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/user_posts_provider.dart';
 import '../../../feed/data/models/post_model.dart';
 import 'add_post_screen.dart';
 
-class UserPostsScreen extends StatefulWidget {
+class UserPostsScreen extends ConsumerStatefulWidget {
   const UserPostsScreen({super.key});
 
   @override
-  State<UserPostsScreen> createState() => _UserPostsScreenState();
+  ConsumerState<UserPostsScreen> createState() => _UserPostsScreenState();
 }
 
-class _UserPostsScreenState extends State<UserPostsScreen> {
-  final HomeService _homeService = HomeService();
-  List<PostModel> _posts = [];
-  bool _isLoading = true;
-
+class _UserPostsScreenState extends ConsumerState<UserPostsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchMyPosts();
-  }
-
-  Future<void> _fetchMyPosts() async {
-    setState(() => _isLoading = true);
-    try {
-      final posts = await _homeService.getMyPosts();
-      setState(() {
-        _posts = posts;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userPostsProvider.notifier).loadPosts();
+    });
   }
 
   String _formatTimeAgo(DateTime dateTime) {
@@ -69,6 +50,18 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final postsState = ref.watch(userPostsProvider);
+    final _posts = postsState.posts;
+    final _isLoading = postsState.isLoading;
+
+    ref.listen<UserPostsState>(userPostsProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${next.error}')),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -147,7 +140,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                       ),
                     );
                     if (result == true) {
-                      _fetchMyPosts();
+                      ref.read(userPostsProvider.notifier).loadPosts();
                     }
                   },
                   icon: const Icon(Icons.add, size: 18),
@@ -181,7 +174,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                     ),
                   )
                 : RefreshIndicator(
-                    onRefresh: _fetchMyPosts,
+                    onRefresh: () => ref.read(userPostsProvider.notifier).loadPosts(),
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: _posts.length,
@@ -267,8 +260,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
               child: Image.network(
                 post.imageUrl!,
                 width: double.infinity,
-                height: 180,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),
