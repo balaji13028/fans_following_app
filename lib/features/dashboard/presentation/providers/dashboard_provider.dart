@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../data/services/home_service.dart';
 import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
@@ -11,12 +12,18 @@ class DashboardState {
   final List<PostModel> posts;
   final List<SocialLinkModel> socialLinks;
   final bool isLoading;
+  final bool isLoadingMorePosts;
+  final bool postsHasMore;
+  final int postsPage;
 
   DashboardState({
     this.events = const [],
     this.posts = const [],
     this.socialLinks = const [],
     this.isLoading = false,
+    this.isLoadingMorePosts = false,
+    this.postsHasMore = true,
+    this.postsPage = 1,
   });
 
   DashboardState copyWith({
@@ -24,12 +31,18 @@ class DashboardState {
     List<PostModel>? posts,
     List<SocialLinkModel>? socialLinks,
     bool? isLoading,
+    bool? isLoadingMorePosts,
+    bool? postsHasMore,
+    int? postsPage,
   }) {
     return DashboardState(
       events: events ?? this.events,
       posts: posts ?? this.posts,
       socialLinks: socialLinks ?? this.socialLinks,
       isLoading: isLoading ?? this.isLoading,
+      isLoadingMorePosts: isLoadingMorePosts ?? this.isLoadingMorePosts,
+      postsHasMore: postsHasMore ?? this.postsHasMore,
+      postsPage: postsPage ?? this.postsPage,
     );
   }
 }
@@ -43,15 +56,59 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   Future<void> loadDashboard() async {
     state = state.copyWith(isLoading: true);
     try {
-      final data = await _homeService.getDashboardData();
+      final results = await Future.wait([
+        _homeService.getDashboardData(),
+        _homeService.getEvents(page: 1, limit: 10),
+        _homeService.getPosts(page: 1, limit: AppConstants.defaultPageSize),
+      ]);
+
+      final dashboardData = results[0];
+      final eventsData = results[1];
+      final postsData = results[2];
+
+      final events = (eventsData['items'] as List)
+          .map((e) => EventModel.fromJson(e))
+          .toList();
+      final posts = (postsData['items'] as List)
+          .map((p) => PostModel.fromJson(p))
+          .toList();
+
       state = DashboardState(
-        events: data['events'],
-        posts: data['posts'],
-        socialLinks: data['socialMedia'],
+        events: events,
+        posts: posts,
+        socialLinks: dashboardData['socialMedia'],
         isLoading: false,
+        postsHasMore: postsData['hasMore'] ?? false,
+        postsPage: 1,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false);
+    }
+  }
+
+  Future<void> loadMorePosts() async {
+    if (state.isLoadingMorePosts || !state.postsHasMore) return;
+
+    state = state.copyWith(isLoadingMorePosts: true);
+    try {
+      final nextPage = state.postsPage + 1;
+      final postsData = await _homeService.getPosts(
+        page: nextPage,
+        limit: AppConstants.defaultPageSize,
+      );
+
+      final newPosts = (postsData['items'] as List)
+          .map((p) => PostModel.fromJson(p))
+          .toList();
+
+      state = state.copyWith(
+        posts: [...state.posts, ...newPosts],
+        postsHasMore: postsData['hasMore'] ?? false,
+        postsPage: nextPage,
+        isLoadingMorePosts: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoadingMorePosts: false);
     }
   }
 
@@ -85,7 +142,6 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     try {
       final isLiked = await _homeService.toggleLike(id, type);
       updateLikeLocal(id, type, isLiked);
-      // Also update feed if it exists
       _ref.read(feedNotifierProvider.notifier).updateLikeLocal(id, type, isLiked);
     } catch (e) {
       // Handle error
@@ -145,9 +201,9 @@ class FeedNotifier extends StateNotifier<FeedState> {
     try {
       final result = await _homeService.getFeed(
         page: currentPage,
-        limit: 15,
+        limit: AppConstants.defaultPageSize,
       );
-      
+
       final List<dynamic> newItems = (result['feed'] as List).map((item) {
         if (item['feedType'] == 'event') {
           return EventModel.fromJson(item);
@@ -196,7 +252,6 @@ class FeedNotifier extends StateNotifier<FeedState> {
     try {
       final isLiked = await _homeService.toggleLike(id, type);
       updateLikeLocal(id, type, isLiked);
-      // Also update dashboard if it exists
       _ref.read(dashboardNotifierProvider.notifier).updateLikeLocal(id, type, isLiked);
     } catch (e) {
       // Handle error

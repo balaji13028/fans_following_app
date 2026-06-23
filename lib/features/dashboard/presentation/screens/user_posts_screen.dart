@@ -12,25 +12,66 @@ class UserPostsScreen extends StatefulWidget {
 
 class _UserPostsScreenState extends State<UserPostsScreen> {
   final HomeService _homeService = HomeService();
+  final ScrollController _scrollController = ScrollController();
   List<PostModel> _posts = [];
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _page = 1;
+  int _total = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchMyPosts();
+    _fetchMyPosts(refresh: true);
+    _scrollController.addListener(_onScroll);
   }
 
-  Future<void> _fetchMyPosts() async {
-    setState(() => _isLoading = true);
-    try {
-      final posts = await _homeService.getMyPosts();
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _fetchMyPosts();
+    }
+  }
+
+  Future<void> _fetchMyPosts({bool refresh = false}) async {
+    if (_isLoadingMore || (!refresh && !_hasMore)) return;
+    if (refresh) {
       setState(() {
-        _posts = posts;
+        _isLoading = true;
+        _page = 1;
+        _hasMore = true;
+      });
+    } else {
+      setState(() => _isLoadingMore = true);
+    }
+
+    try {
+      final page = refresh ? 1 : _page + 1;
+      final data = await _homeService.getMyPosts(page: page);
+      final items = (data['items'] as List)
+          .map((json) => PostModel.fromJson(json))
+          .toList();
+
+      setState(() {
+        _posts = refresh ? items : [..._posts, ...items];
+        _page = page;
+        _hasMore = data['hasMore'] ?? false;
+        _total = data['total'] ?? _posts.length;
         _isLoading = false;
+        _isLoadingMore = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _isLoadingMore = false;
+      });
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -129,7 +170,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Text(
-                    'Total posts   ${_posts.length}',
+                    'Total posts   ${_total > 0 ? _total : _posts.length}',
                     style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
@@ -147,7 +188,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                       ),
                     );
                     if (result == true) {
-                      _fetchMyPosts();
+                      _fetchMyPosts(refresh: true);
                     }
                   },
                   icon: const Icon(Icons.add, size: 18),
@@ -181,11 +222,22 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                     ),
                   )
                 : RefreshIndicator(
-                    onRefresh: _fetchMyPosts,
+                    onRefresh: () => _fetchMyPosts(refresh: true),
                     child: ListView.builder(
+                      controller: _scrollController,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _posts.length,
+                      itemCount: _posts.length + (_isLoadingMore ? 1 : 0),
                       itemBuilder: (context, index) {
+                        if (index >= _posts.length) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+                        }
                         return _buildPostCard(_posts[index]);
                       },
                     ),

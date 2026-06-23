@@ -5,8 +5,8 @@ class AppConstants {
 
   // API Endpoints (Update with your actual API base URL)
   // Use 10.0.2.2 for Android Emulator, or 127.0.0.1 for iOS Simulator connecting to localhost
-  static const String baseUrl = 'https://api.aafansassociation.com';
-  // static const String baseUrl = 'http://localhost:4000';
+  // static const String baseUrl = 'https://api.aafansassociation.com';
+  static const String baseUrl = 'http://localhost:4000';
   static const String apiVersion = '/api/v1';
 
   // Authentication
@@ -45,4 +45,10 @@ class AppConstants {
   // Pagination
   static const int defaultPageSize = 20;
   static const int maxPageSize = 100;
+
+  // Legal
+  static const String privacyPolicyUrl =
+      'https://www.aafansassociation.com/privacy-policy';
+  static const String termsAndConditionsUrl =
+      'https://www.aafansassociation.com/terms-and-conditions';
 }

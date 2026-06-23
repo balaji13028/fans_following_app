@@ -23,6 +23,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentEventIndex = 0;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -30,6 +31,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(dashboardNotifierProvider.notifier).loadDashboard();
     });
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      ref.read(dashboardNotifierProvider.notifier).loadMorePosts();
+    }
   }
 
   String _getRelativeTime(DateTime dateTime) {
@@ -158,6 +173,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         onRefresh: () =>
             ref.read(dashboardNotifierProvider.notifier).loadDashboard(),
         child: SingleChildScrollView(
+          controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,6 +560,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   );
                 },
               ),
+              if (dashboardState.isLoadingMorePosts)
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                ),
               const SizedBox(height: 140), // Bottom padding for scroll
             ],
           ),

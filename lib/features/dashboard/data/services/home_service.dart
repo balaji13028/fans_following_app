@@ -1,4 +1,5 @@
 import '../../../../core/services/api_service.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../../../feed/data/models/social_link_model.dart';
@@ -11,26 +12,57 @@ class HomeService {
       final response = await _apiService.get('/mobile/dashboard');
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        
-        final events = (data['events'] as List)
-            .map((e) => EventModel.fromJson(e))
-            .toList();
-            
-        final posts = (data['posts'] as List)
-            .map((p) => PostModel.fromJson(p))
-            .toList();
-            
+
         final socialMedia = (data['socialMedia'] as List)
             .map((s) => SocialLinkModel.fromJson(s))
             .toList();
-            
+
         return {
-          'events': events,
-          'posts': posts,
           'socialMedia': socialMedia,
         };
       }
       throw Exception('Failed to load dashboard');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getPosts({
+    int page = 1,
+    int limit = AppConstants.defaultPageSize,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        '/mobile/posts',
+        queryParameters: {'page': page, 'limit': limit},
+      );
+      if (response.statusCode == 200) {
+        return response.data as Map<String, dynamic>;
+      }
+      throw Exception('Failed to load posts');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getEvents({
+    int page = 1,
+    int limit = AppConstants.defaultPageSize,
+    bool futureOnly = true,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        '/mobile/events',
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+          'futureOnly': futureOnly,
+        },
+      );
+      if (response.statusCode == 200) {
+        return response.data as Map<String, dynamic>;
+      }
+      throw Exception('Failed to load events');
     } catch (e) {
       rethrow;
     }
@@ -47,6 +79,7 @@ class HomeService {
       return false;
     }
   }
+
   Future<Map<String, dynamic>> getFeed({int page = 1, int limit = 15}) async {
     try {
       final response = await _apiService.get('/mobile/feed', queryParameters: {
@@ -61,12 +94,18 @@ class HomeService {
       rethrow;
     }
   }
-  Future<List<PostModel>> getMyPosts() async {
+
+  Future<Map<String, dynamic>> getMyPosts({
+    int page = 1,
+    int limit = AppConstants.defaultPageSize,
+  }) async {
     try {
-      final response = await _apiService.get('/mobile/my-posts');
+      final response = await _apiService.get(
+        '/mobile/my-posts',
+        queryParameters: {'page': page, 'limit': limit},
+      );
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['posts'];
-        return data.map((json) => PostModel.fromJson(json)).toList();
+        return response.data as Map<String, dynamic>;
       }
       throw Exception('Failed to load my posts');
     } catch (e) {

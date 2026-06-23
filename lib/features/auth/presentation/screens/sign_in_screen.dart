@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import 'sign_up_screen.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/legal_acceptance_text.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:country_picker/country_picker.dart';
@@ -287,6 +288,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ),
                         ),
                 ),
+
+                const SizedBox(height: 16),
+
+                const LegalAcceptanceText(action: 'signing in'),
 
                 const Spacer(),
 

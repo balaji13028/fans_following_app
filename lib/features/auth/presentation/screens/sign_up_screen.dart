@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/date_picker_field.dart';
+import '../../../../core/widgets/legal_acceptance_text.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:csc_picker/csc_picker.dart';
 import 'package:country_picker/country_picker.dart';
@@ -580,6 +581,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ),
 
             const SizedBox(height: 30),
+
+            const LegalAcceptanceText(action: 'signing up'),
+
+            const SizedBox(height: 16),
 
             // Back and Create Buttons
             Row(
