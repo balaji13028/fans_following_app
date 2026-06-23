@@ -4,7 +4,8 @@ import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../main.dart'; // To access navigatorKey
 
 class PushNotificationService {
-  static final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  static final FirebaseMessaging _firebaseMessaging =
+      FirebaseMessaging.instance;
 
   static Future<void> init() async {
     // 1. Request permissions (required for iOS and Android 13+)
@@ -21,7 +22,8 @@ class PushNotificationService {
     debugPrint('User granted permission: ${settings.authorizationStatus}');
 
     // 2. Handle initial message (App started from a terminated state)
-    RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
+    RemoteMessage? initialMessage = await _firebaseMessaging
+        .getInitialMessage();
     if (initialMessage != null) {
       _handleMessage(initialMessage);
     }
@@ -32,7 +34,9 @@ class PushNotificationService {
       debugPrint('Message data: ${message.data}');
 
       if (message.notification != null) {
-        debugPrint('Message also contained a notification: ${message.notification}');
+        debugPrint(
+          'Message also contained a notification: ${message.notification}',
+        );
         // Optional: Show local notification here if needed
       }
     });
@@ -61,7 +65,9 @@ class PushNotificationService {
         } catch (e) {
           if (e.toString().contains('apns-token-not-set')) {
             debugPrint("APNS token not set yet, retrying... ($retryCount)");
-            await Future.delayed(Duration(milliseconds: 500 * (retryCount + 1)));
+            await Future.delayed(
+              Duration(milliseconds: 500 * (retryCount + 1)),
+            );
           } else {
             rethrow;
           }
@@ -77,7 +83,7 @@ class PushNotificationService {
 
   static void _handleMessage(RemoteMessage message) {
     debugPrint("Handling interaction for message: ${message.messageId}");
-    
+
     // Navigate to the NotificationsScreen
     // NotificationsScreen is at index 0 of the DashboardScreen
     navigatorKey.currentState?.pushAndRemoveUntil(

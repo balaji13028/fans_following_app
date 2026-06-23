@@ -1,29 +1,25 @@
 import 'package:flutter/material.dart';
-import '../../data/services/home_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/user_posts_provider.dart';
 import '../../../feed/data/models/post_model.dart';
 import 'add_post_screen.dart';
 
-class UserPostsScreen extends StatefulWidget {
+class UserPostsScreen extends ConsumerStatefulWidget {
   const UserPostsScreen({super.key});
 
   @override
-  State<UserPostsScreen> createState() => _UserPostsScreenState();
+  ConsumerState<UserPostsScreen> createState() => _UserPostsScreenState();
 }
 
-class _UserPostsScreenState extends State<UserPostsScreen> {
-  final HomeService _homeService = HomeService();
+class _UserPostsScreenState extends ConsumerState<UserPostsScreen> {
   final ScrollController _scrollController = ScrollController();
-  List<PostModel> _posts = [];
-  bool _isLoading = true;
-  bool _isLoadingMore = false;
-  bool _hasMore = true;
-  int _page = 1;
-  int _total = 0;
 
   @override
   void initState() {
     super.initState();
-    _fetchMyPosts(refresh: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userPostsProvider.notifier).loadPosts(refresh: true);
+    });
     _scrollController.addListener(_onScroll);
   }
 
@@ -36,47 +32,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      _fetchMyPosts();
-    }
-  }
-
-  Future<void> _fetchMyPosts({bool refresh = false}) async {
-    if (_isLoadingMore || (!refresh && !_hasMore)) return;
-    if (refresh) {
-      setState(() {
-        _isLoading = true;
-        _page = 1;
-        _hasMore = true;
-      });
-    } else {
-      setState(() => _isLoadingMore = true);
-    }
-
-    try {
-      final page = refresh ? 1 : _page + 1;
-      final data = await _homeService.getMyPosts(page: page);
-      final items = (data['items'] as List)
-          .map((json) => PostModel.fromJson(json))
-          .toList();
-
-      setState(() {
-        _posts = refresh ? items : [..._posts, ...items];
-        _page = page;
-        _hasMore = data['hasMore'] ?? false;
-        _total = data['total'] ?? _posts.length;
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      ref.read(userPostsProvider.notifier).loadPosts();
     }
   }
 
@@ -110,6 +66,20 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final postsState = ref.watch(userPostsProvider);
+    final posts = postsState.posts;
+    final isLoading = postsState.isLoading;
+    final isLoadingMore = postsState.isLoadingMore;
+    final total = postsState.total;
+
+    ref.listen<UserPostsState>(userPostsProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${next.error}')),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -155,7 +125,6 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
       ),
       body: Column(
         children: [
-          // Stats & Add Button
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -170,7 +139,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Text(
-                    'Total posts   ${_total > 0 ? _total : _posts.length}',
+                    'Total posts   ${total > 0 ? total : posts.length}',
                     style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
@@ -188,7 +157,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                       ),
                     );
                     if (result == true) {
-                      _fetchMyPosts(refresh: true);
+                      ref.read(userPostsProvider.notifier).loadPosts(refresh: true);
                     }
                   },
                   icon: const Icon(Icons.add, size: 18),
@@ -208,13 +177,12 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
               ],
             ),
           ),
-          // Posts List
           Expanded(
-            child: _isLoading
+            child: isLoading
                 ? const Center(
                     child: CircularProgressIndicator(color: Colors.white),
                   )
-                : _posts.isEmpty
+                : posts.isEmpty
                 ? const Center(
                     child: Text(
                       'You haven\'t posted anything yet',
@@ -222,13 +190,14 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                     ),
                   )
                 : RefreshIndicator(
-                    onRefresh: () => _fetchMyPosts(refresh: true),
+                    onRefresh: () =>
+                        ref.read(userPostsProvider.notifier).loadPosts(refresh: true),
                     child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _posts.length + (_isLoadingMore ? 1 : 0),
+                      itemCount: posts.length + (isLoadingMore ? 1 : 0),
                       itemBuilder: (context, index) {
-                        if (index >= _posts.length) {
+                        if (index >= posts.length) {
                           return const Padding(
                             padding: EdgeInsets.all(16),
                             child: Center(
@@ -238,7 +207,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
                             ),
                           );
                         }
-                        return _buildPostCard(_posts[index]);
+                        return _buildPostCard(posts[index]);
                       },
                     ),
                   ),
@@ -319,8 +288,7 @@ class _UserPostsScreenState extends State<UserPostsScreen> {
               child: Image.network(
                 post.imageUrl!,
                 width: double.infinity,
-                height: 180,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),

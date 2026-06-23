@@ -20,7 +20,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   final _mobileController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _isLoading = false;
   Country _selectedCountry = Country.parse('IN'); // Default to India
 
   @override
@@ -38,47 +37,41 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     super.dispose();
   }
 
-  Future<void> _handleSignIn() async {
+  void _handleSignIn() {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+      final mobileNumber =
+          '+${_selectedCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
+      final password = _passwordController.text;
 
-      try {
-        final mobileNumber =
-            '+${_selectedCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
-        final password = _passwordController.text;
-
-        // Password based login
-        await ref
-            .read(authNotifierProvider.notifier)
-            .userLogin(mobileNumber: mobileNumber, password: password);
-
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
-            (route) => false,
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
+      // Password based login
+      ref
+          .read(authNotifierProvider.notifier)
+          .userLogin(mobileNumber: mobileNumber, password: password);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
+      if (next.error != null && next.error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${next.error}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error,
+          ),
+        );
+      } else if (next.isAuthenticated && previous?.isAuthenticated != true) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          (route) => false,
+        );
+      }
+    });
+
+    final isLoading = ref.watch(authNotifierProvider).isLoading;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -259,7 +252,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
                 // Sign In Button
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSignIn,
+                  onPressed: isLoading ? null : _handleSignIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black,
@@ -269,7 +262,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: _isLoading
+                  child: isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
