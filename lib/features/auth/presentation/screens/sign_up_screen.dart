@@ -123,13 +123,26 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         };
 
         // Sign Up
-        await ref.read(authNotifierProvider.notifier).userSignUp(userDetails: userDetails);
+        final success = await ref
+            .read(authNotifierProvider.notifier)
+            .userSignUp(userDetails: userDetails);
 
-        if (mounted) {
+        if (!mounted) return;
+
+        if (success) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const DashboardScreen()),
             (route) => false,
+          );
+        } else {
+          final error = ref.read(authNotifierProvider).error;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error ?? 'Sign up failed. Please try again.'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppColors.error,
+            ),
           );
         }
       } catch (e) {

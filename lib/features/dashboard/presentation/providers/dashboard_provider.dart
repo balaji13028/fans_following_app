@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../data/services/home_service.dart';
 import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
@@ -15,6 +16,7 @@ class DashboardState {
   final bool isLoadingMorePosts;
   final bool postsHasMore;
   final int postsPage;
+  final bool loadMorePostsError;
 
   DashboardState({
     this.events = const [],
@@ -24,6 +26,7 @@ class DashboardState {
     this.isLoadingMorePosts = false,
     this.postsHasMore = true,
     this.postsPage = 1,
+    this.loadMorePostsError = false,
   });
 
   DashboardState copyWith({
@@ -34,6 +37,7 @@ class DashboardState {
     bool? isLoadingMorePosts,
     bool? postsHasMore,
     int? postsPage,
+    bool? loadMorePostsError,
   }) {
     return DashboardState(
       events: events ?? this.events,
@@ -43,6 +47,7 @@ class DashboardState {
       isLoadingMorePosts: isLoadingMorePosts ?? this.isLoadingMorePosts,
       postsHasMore: postsHasMore ?? this.postsHasMore,
       postsPage: postsPage ?? this.postsPage,
+      loadMorePostsError: loadMorePostsError ?? this.loadMorePostsError,
     );
   }
 }
@@ -53,7 +58,37 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
   DashboardNotifier(this._homeService, this._ref) : super(DashboardState());
 
+  /// Current connectivity, sourced from the same reliable status stream that
+  /// drives the banner. Defaults to online when unknown so the first load isn't
+  /// blocked.
+  bool get _isOnline =>
+      _ref.read(connectivityStatusProvider).value ?? true;
+
+  /// Auto-resume when the internet comes back, with no user action (YouTube-like).
+  /// Wired from the provider via `ref.listen` so it fires reliably.
+  void handleConnectivityChange(
+    AsyncValue<bool>? previous,
+    AsyncValue<bool> next,
+  ) {
+    final cameBackOnline = previous?.value == false && next.value == true;
+    if (!cameBackOnline) return;
+
+    if (state.events.isEmpty && state.posts.isEmpty) {
+      loadDashboard();
+    } else if (state.loadMorePostsError) {
+      state = state.copyWith(loadMorePostsError: false);
+      loadMorePosts();
+    }
+  }
+
   Future<void> loadDashboard() async {
+    // Don't hit the API with no connection; the connectivity listener will
+    // retry automatically once the internet returns.
+    if (!_isOnline) {
+      state = state.copyWith(isLoading: false);
+      return;
+    }
+
     state = state.copyWith(isLoading: true);
     try {
       final results = await Future.wait([
@@ -87,9 +122,25 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   }
 
   Future<void> loadMorePosts() async {
-    if (state.isLoadingMorePosts || !state.postsHasMore) return;
+    // Don't trigger again while loading, when there's nothing more, or after a
+    // previous failure (prevents an endless retry loop while scrolling offline).
+    if (state.isLoadingMorePosts ||
+        !state.postsHasMore ||
+        state.loadMorePostsError) {
+      return;
+    }
 
-    state = state.copyWith(isLoadingMorePosts: true);
+    state = state.copyWith(isLoadingMorePosts: true, loadMorePostsError: false);
+
+    // Don't even attempt the API when there's no connection.
+    if (!_isOnline) {
+      state = state.copyWith(
+        isLoadingMorePosts: false,
+        loadMorePostsError: true,
+      );
+      return;
+    }
+
     try {
       final nextPage = state.postsPage + 1;
       final postsData = await _homeService.getPosts(
@@ -106,10 +157,22 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         postsHasMore: postsData['hasMore'] ?? false,
         postsPage: nextPage,
         isLoadingMorePosts: false,
+        loadMorePostsError: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoadingMorePosts: false);
+      // Stop auto-loading; user can tap "retry" or pull to refresh.
+      state = state.copyWith(
+        isLoadingMorePosts: false,
+        loadMorePostsError: true,
+      );
     }
+  }
+
+  /// Manually retry loading the next page after a failure.
+  void retryLoadMorePosts() {
+    if (state.isLoadingMorePosts) return;
+    state = state.copyWith(loadMorePostsError: false);
+    loadMorePosts();
   }
 
   void updateLikeLocal(String id, String type, bool isLiked) {
@@ -151,7 +214,13 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
 
 final dashboardNotifierProvider =
     StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
-  return DashboardNotifier(ref.watch(homeServiceProvider), ref);
+  final notifier = DashboardNotifier(ref.watch(homeServiceProvider), ref);
+  // Auto-resume loads when connectivity is restored.
+  ref.listen<AsyncValue<bool>>(
+    connectivityStatusProvider,
+    notifier.handleConnectivityChange,
+  );
+  return notifier;
 });
 
 class FeedState {
@@ -159,12 +228,16 @@ class FeedState {
   final int page;
   final bool hasMore;
   final bool isLoading;
+  final bool isLoadingMore;
+  final bool loadMoreError;
 
   FeedState({
     this.items = const [],
     this.page = 1,
     this.hasMore = true,
     this.isLoading = false,
+    this.isLoadingMore = false,
+    this.loadMoreError = false,
   });
 
   FeedState copyWith({
@@ -172,12 +245,16 @@ class FeedState {
     int? page,
     bool? hasMore,
     bool? isLoading,
+    bool? isLoadingMore,
+    bool? loadMoreError,
   }) {
     return FeedState(
       items: items ?? this.items,
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
       isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      loadMoreError: loadMoreError ?? this.loadMoreError,
     );
   }
 }
@@ -188,14 +265,44 @@ class FeedNotifier extends StateNotifier<FeedState> {
 
   FeedNotifier(this._homeService, this._ref) : super(FeedState());
 
+  /// Current connectivity, sourced from the reliable status stream.
+  bool get _isOnline =>
+      _ref.read(connectivityStatusProvider).value ?? true;
+
+  /// Auto-resume when the internet comes back, with no user action.
+  /// Wired from the provider via `ref.listen` so it fires reliably.
+  void handleConnectivityChange(
+    AsyncValue<bool>? previous,
+    AsyncValue<bool> next,
+  ) {
+    final cameBackOnline = previous?.value == false && next.value == true;
+    if (!cameBackOnline) return;
+
+    if (state.items.isEmpty) {
+      loadFeed(refresh: true);
+    } else if (state.loadMoreError) {
+      state = state.copyWith(loadMoreError: false);
+      loadFeed();
+    }
+  }
+
   Future<void> loadFeed({bool refresh = false}) async {
-    if (state.isLoading || (!state.hasMore && !refresh)) return;
+    // Guard against duplicate/looping calls. After a load-more failure we wait
+    // for an explicit retry/refresh instead of re-firing on every scroll.
+    if (state.isLoading || state.isLoadingMore) return;
+    if (!refresh && (!state.hasMore || state.loadMoreError)) return;
+
+    // Don't even attempt the API when there's no connection.
+    if (!_isOnline) {
+      if (!refresh) state = state.copyWith(loadMoreError: true);
+      return;
+    }
 
     final currentPage = refresh ? 1 : state.page;
     if (refresh) {
       state = FeedState(isLoading: true);
     } else {
-      state = state.copyWith(isLoading: true);
+      state = state.copyWith(isLoadingMore: true, loadMoreError: false);
     }
 
     try {
@@ -217,10 +324,24 @@ class FeedNotifier extends StateNotifier<FeedState> {
         page: currentPage + 1,
         hasMore: result['hasMore'] ?? false,
         isLoading: false,
+        isLoadingMore: false,
+        loadMoreError: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false);
+      // Mark the failure so the UI can show a retry control instead of looping.
+      state = state.copyWith(
+        isLoading: false,
+        isLoadingMore: false,
+        loadMoreError: !refresh,
+      );
     }
+  }
+
+  /// Manually retry loading the next page after a failure.
+  void retryLoadFeed() {
+    if (state.isLoading || state.isLoadingMore) return;
+    state = state.copyWith(loadMoreError: false);
+    loadFeed();
   }
 
   void updateLikeLocal(String id, String type, bool isLiked) {
@@ -261,5 +382,11 @@ class FeedNotifier extends StateNotifier<FeedState> {
 
 final feedNotifierProvider =
     StateNotifierProvider<FeedNotifier, FeedState>((ref) {
-  return FeedNotifier(ref.watch(homeServiceProvider), ref);
+  final notifier = FeedNotifier(ref.watch(homeServiceProvider), ref);
+  // Auto-resume loads when connectivity is restored.
+  ref.listen<AsyncValue<bool>>(
+    connectivityStatusProvider,
+    notifier.handleConnectivityChange,
+  );
+  return notifier;
 });

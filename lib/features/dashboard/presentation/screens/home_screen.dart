@@ -14,6 +14,8 @@ import '../providers/dashboard_provider.dart';
 import '../widgets/video_player_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../../../../core/utils/offline_snackbar.dart';
+import '../../../../core/widgets/connectivity_banner.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -48,7 +50,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(dashboardNotifierProvider.notifier).loadMorePosts();
+      final state = ref.read(dashboardNotifierProvider);
+      // Only auto-load when there's more, nothing is in-flight, and the last
+      // attempt didn't fail (avoids spamming the API while offline).
+      if (state.postsHasMore &&
+          !state.isLoadingMorePosts &&
+          !state.loadMorePostsError) {
+        ref.read(dashboardNotifierProvider.notifier).loadMorePosts();
+      }
     }
   }
 
@@ -134,7 +143,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             centerTitle: true,
             title: Image.asset('assets/logo/aa.png', height: 60),
           ),
-          body: SingleChildScrollView(
+          body: Column(
+            children: [
+              const ConnectivityBanner(),
+              Expanded(
+                child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -185,6 +198,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             ),
           ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -229,7 +245,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         ),
-        body: RefreshIndicator(
+        body: Column(
+          children: [
+            const ConnectivityBanner(),
+            Expanded(
+              child: RefreshIndicator(
           color: Colors.white,
           onRefresh: () =>
               ref.read(dashboardNotifierProvider.notifier).loadDashboard(),
@@ -731,12 +751,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: Center(
                             child: CircularProgressIndicator(color: Colors.white),
                           ),
+                        )
+                      else if (dashboardState.loadMorePostsError)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Center(
+                            child: TextButton.icon(
+                              onPressed: () => retryIfOnline(
+                                context,
+                                ref,
+                                () => ref
+                                    .read(dashboardNotifierProvider.notifier)
+                                    .retryLoadMorePosts(),
+                              ),
+                              icon: const Icon(
+                                Icons.refresh,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              label: const Text(
+                                "Couldn't load more. Tap to retry",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                          ),
                         ),
                       const SizedBox(height: 140), // Bottom padding for scroll
                     ],
                   ),
                 ),
         ),
+              ),
+            ],
+          ),
       ),
     );
   }

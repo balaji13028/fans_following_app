@@ -76,7 +76,10 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   /// User Login (Mobile + Password)
-  Future<void> userLogin({
+  /// Returns `true` on success, `false` on failure. On failure the error
+  /// message is stored in [AuthState.error] for the UI to display, instead of
+  /// throwing (which would surface as an unhandled exception in debug).
+  Future<bool> userLogin({
     required String mobileNumber,
     required String password,
   }) async {
@@ -95,12 +98,13 @@ class AuthNotifier extends _$AuthNotifier {
         isLoading: false,
         error: null,
       );
+      return true;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
-      rethrow;
+      return false;
     }
   }
 
@@ -121,7 +125,8 @@ class AuthNotifier extends _$AuthNotifier {
   */
 
   /// User Sign Up
-  Future<void> userSignUp({
+  /// Returns `true` on success, `false` on failure (error stored in state).
+  Future<bool> userSignUp({
     required Map<String, dynamic> userDetails,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -145,12 +150,13 @@ class AuthNotifier extends _$AuthNotifier {
         isLoading: false,
         error: null,
       );
+      return true;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
-      rethrow;
+      return false;
     }
   }
 
@@ -200,7 +206,8 @@ class AuthNotifier extends _$AuthNotifier {
   */
 
   /// Sign out
-  Future<void> signOut() async {
+  /// Returns `true` on success, `false` on failure (error stored in state).
+  Future<bool> signOut() async {
     state = state.copyWith(isLoading: true);
 
     try {
@@ -212,35 +219,43 @@ class AuthNotifier extends _$AuthNotifier {
         isAuthenticated: false,
         isLoading: false,
       );
+      return true;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
       );
-      rethrow;
+      return false;
     }
   }
 
   /// Refresh user data
-  Future<void> refreshUser() async {
+  /// Background refresh. Failures are intentionally not surfaced to the user
+  /// (they don't break the current screen); returns `false` if it failed.
+  Future<bool> refreshUser() async {
     try {
       final repository = ref.read(authRepositoryProvider);
       final user = await repository.refreshUserData();
 
       state = state.copyWith(user: user);
+      return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
-      rethrow;
+      debugPrint('refreshUser failed: $e');
+      return false;
     }
   }
 
   /// Update Profile
-  Future<void> updateProfile(Map<String, dynamic> userDetails) async {
+  /// Returns `true` on success, `false` on failure (error stored in state).
+  Future<bool> updateProfile(Map<String, dynamic> userDetails) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(authRepositoryProvider);
       final userId = state.user?.id;
-      if (userId == null) return;
+      if (userId == null) {
+        state = state.copyWith(isLoading: false);
+        return false;
+      }
 
       await repository.updateUserDetails(
         userId: userId,
@@ -250,9 +265,10 @@ class AuthNotifier extends _$AuthNotifier {
       // Refresh to get latest data
       await refreshUser();
       state = state.copyWith(isLoading: false);
+      return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
-      rethrow;
+      return false;
     }
   }
 
@@ -278,12 +294,16 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   /// Upload Profile Image
-  Future<void> uploadProfileImage(String filePath) async {
+  /// Returns `true` on success, `false` on failure (error stored in state).
+  Future<bool> uploadProfileImage(String filePath) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final repository = ref.read(authRepositoryProvider);
       final userId = state.user?.id;
-      if (userId == null) return;
+      if (userId == null) {
+        state = state.copyWith(isLoading: false);
+        return false;
+      }
 
       await repository.uploadProfileImage(
         userId: userId,
@@ -293,9 +313,10 @@ class AuthNotifier extends _$AuthNotifier {
       // Refresh to get latest data (including presigned URL)
       await refreshUser();
       state = state.copyWith(isLoading: false);
+      return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
-      rethrow;
+      return false;
     }
   }
 }

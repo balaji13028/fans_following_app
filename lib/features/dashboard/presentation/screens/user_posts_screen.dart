@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/user_posts_provider.dart';
 import '../../../feed/data/models/post_model.dart';
+import '../../../../core/utils/offline_snackbar.dart';
+import '../../../../core/widgets/connectivity_banner.dart';
 import 'add_post_screen.dart';
 
 class UserPostsScreen extends ConsumerStatefulWidget {
@@ -32,7 +34,11 @@ class _UserPostsScreenState extends ConsumerState<UserPostsScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(userPostsProvider.notifier).loadPosts();
+      final state = ref.read(userPostsProvider);
+      // Avoid re-triggering the API on every scroll when offline or already busy.
+      if (state.hasMore && !state.isLoadingMore && !state.loadMoreError) {
+        ref.read(userPostsProvider.notifier).loadPosts();
+      }
     }
   }
 
@@ -125,6 +131,7 @@ class _UserPostsScreenState extends ConsumerState<UserPostsScreen> {
       ),
       body: Column(
         children: [
+          const ConnectivityBanner(),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -195,9 +202,36 @@ class _UserPostsScreenState extends ConsumerState<UserPostsScreen> {
                     child: ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: posts.length + (isLoadingMore ? 1 : 0),
+                      itemCount:
+                          posts.length +
+                          (isLoadingMore || postsState.loadMoreError ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index >= posts.length) {
+                          if (postsState.loadMoreError) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Center(
+                                child: TextButton.icon(
+                                  onPressed: () => retryIfOnline(
+                                    context,
+                                    ref,
+                                    () => ref
+                                        .read(userPostsProvider.notifier)
+                                        .retryLoadMore(),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.refresh,
+                                    color: Colors.white70,
+                                    size: 18,
+                                  ),
+                                  label: const Text(
+                                    "Couldn't load more. Tap to retry",
+                                    style: TextStyle(color: Colors.white70),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
                           return const Padding(
                             padding: EdgeInsets.all(16),
                             child: Center(

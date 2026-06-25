@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/services/storage_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/connectivity_wrapper.dart';
 import 'features/splash/splash_screen.dart';
 import 'core/services/push_notification_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -37,12 +40,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'AA Fans',
       theme: AppTheme.darkTheme, // Dark theme only
       darkTheme: AppTheme.darkTheme, // Ensure dark theme is used
       themeMode: ThemeMode.dark, // Force dark mode
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return ConnectivityWrapper(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../../auth/presentation/screens/sign_in_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import '../../../../core/services/permission_service.dart';
+import '../../../../core/widgets/connectivity_banner.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -74,17 +75,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
 
         if (croppedFile != null) {
-          await ref
+          final success = await ref
               .read(authNotifierProvider.notifier)
               .uploadProfileImage(croppedFile.path);
 
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Profile picture updated!'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            if (success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Profile picture updated!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            } else {
+              final error = ref.read(authNotifierProvider).error;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(error ?? 'Failed to update profile picture'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
           }
         }
       }
@@ -148,7 +159,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: isLoading && user == null
+      body: Column(
+        children: [
+          const ConnectivityBanner(),
+          Expanded(
+            child: isLoading && user == null
           ? SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -496,6 +511,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
     );
   }
 

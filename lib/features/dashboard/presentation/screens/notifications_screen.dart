@@ -6,6 +6,8 @@ import '../../../feed/data/models/event_model.dart';
 import '../../../feed/data/models/post_model.dart';
 import '../providers/dashboard_provider.dart';
 import '../../../../core/widgets/skeleton.dart';
+import '../../../../core/utils/offline_snackbar.dart';
+import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../feed/presentation/screens/event_detail_screen.dart';
 import '../../../feed/presentation/screens/post_detail_screen.dart';
 
@@ -65,7 +67,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(feedNotifierProvider.notifier).loadFeed();
+      final state = ref.read(feedNotifierProvider);
+      // Avoid re-firing the API on every scroll when offline or already busy.
+      if (state.hasMore &&
+          !state.isLoading &&
+          !state.isLoadingMore &&
+          !state.loadMoreError) {
+        ref.read(feedNotifierProvider.notifier).loadFeed();
+      }
     }
   }
 
@@ -102,8 +111,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Widget build(BuildContext context) {
     final feedState = ref.watch(feedNotifierProvider);
     final feedItems = feedState.items;
-    final hasMore = feedState.hasMore;
     final isLoading = feedState.isLoading;
+    // Show a footer cell while loading the next page or when it failed (retry).
+    final showFooter = feedState.isLoadingMore || feedState.loadMoreError;
 
     return PopScope(
       canPop: false,
@@ -123,7 +133,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
           ),
         ),
-        body: RefreshIndicator(
+        body: Column(
+          children: [
+            const ConnectivityBanner(),
+            Expanded(
+              child: RefreshIndicator(
           onRefresh: () =>
               ref.read(feedNotifierProvider.notifier).loadFeed(refresh: true),
           child: feedItems.isEmpty && isLoading
@@ -162,9 +176,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.only(top: 8, bottom: 140),
-                  itemCount: feedItems.length + (hasMore ? 1 : 0),
+                  itemCount: feedItems.length + (showFooter ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == feedItems.length) {
+                      if (feedState.loadMoreError) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(
+                            child: TextButton.icon(
+                              onPressed: () => retryIfOnline(
+                                context,
+                                ref,
+                                () => ref
+                                    .read(feedNotifierProvider.notifier)
+                                    .retryLoadFeed(),
+                              ),
+                              icon: const Icon(
+                                Icons.refresh,
+                                color: Colors.white70,
+                                size: 18,
+                              ),
+                              label: const Text(
+                                "Couldn't load more. Tap to retry",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 24.0),
                         child: Center(
@@ -230,6 +269,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     return const SizedBox.shrink();
                   },
                 ),
+              ),
+            ),
+          ],
         ),
       ),
     );

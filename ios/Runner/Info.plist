@@ -4,10 +4,16 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!-- Allow cleartext HTTP to localhost / *.local for local development. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>AA Fans</string>
+	<string>AAFA</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,6 +32,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires access to the camera to take profile pictures and media.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app requires access to your location to provide personalized content.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires access to the microphone for recording videos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to the photo library to upload profile pictures and media.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -66,13 +80,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library to upload profile pictures and media.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>This app requires access to the camera to take profile pictures and media.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app requires access to the microphone for recording videos.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app requires access to your location to provide personalized content.</string>
 </dict>
 </plist>

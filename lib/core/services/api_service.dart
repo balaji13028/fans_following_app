@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../../main.dart';
@@ -5,11 +7,37 @@ import '../../features/auth/presentation/screens/sign_in_screen.dart';
 import '../constants/app_constants.dart';
 import 'storage_service.dart';
 
+/// Categories of API failures so the UI can react appropriately
+/// (e.g. show a "server down" vs "no internet" message).
+enum ApiErrorType {
+  noInternet,
+  serverDown,
+  timeout,
+  unauthorized,
+  badRequest,
+  forbidden,
+  notFound,
+  server,
+  unknown,
+}
+
 class ApiException implements Exception {
   final String message;
   final int? statusCode;
+  final ApiErrorType type;
 
-  ApiException(this.message, [this.statusCode]);
+  ApiException(
+    this.message, {
+    this.statusCode,
+    this.type = ApiErrorType.unknown,
+  });
+
+  /// Whether this failure is a connectivity/server-reachability problem
+  /// (as opposed to a normal API error like 400/401).
+  bool get isConnectionIssue =>
+      type == ApiErrorType.noInternet ||
+      type == ApiErrorType.serverDown ||
+      type == ApiErrorType.timeout;
 
   @override
   String toString() => message;
@@ -22,17 +50,37 @@ class ApiService {
 
   Exception _handleException(dynamic e) {
     if (e is DioException) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout ||
-          e.type == DioExceptionType.sendTimeout) {
-        return ApiException('No internet connection. Please check your network.');
+      // Timeouts: server reachable too slowly, or down/overloaded.
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        return ApiException(
+          'The server is taking too long to respond. It may be down. '
+          'Please try again later.',
+          type: ApiErrorType.timeout,
+        );
       }
-      
+
+      // Connection errors: distinguish "server is down" (host reachable but
+      // refusing) from a genuine "no internet" situation.
+      if (e.type == DioExceptionType.connectionError) {
+        if (_isServerUnreachable(e.error)) {
+          return ApiException(
+            'Unable to reach the server. The server may be down. '
+            'Please try again later.',
+            type: ApiErrorType.serverDown,
+          );
+        }
+        return ApiException(
+          'No internet connection. Please check your network and try again.',
+          type: ApiErrorType.noInternet,
+        );
+      }
+
       if (e.response != null) {
         final statusCode = e.response!.statusCode;
         final responseData = e.response!.data;
-        
+
         String message = 'An error occurred';
         if (responseData is Map<String, dynamic>) {
           message = responseData['error'] ?? responseData['message'] ?? message;
@@ -40,22 +88,62 @@ class ApiService {
 
         switch (statusCode) {
           case 400:
-            return ApiException('Bad request: $message', statusCode);
+            return ApiException(
+              'Bad request: $message',
+              statusCode: statusCode,
+              type: ApiErrorType.badRequest,
+            );
           case 401:
-            return ApiException(message, statusCode);
+            return ApiException(
+              message,
+              statusCode: statusCode,
+              type: ApiErrorType.unauthorized,
+            );
           case 403:
-            return ApiException('Access forbidden: $message', statusCode);
+            return ApiException(
+              'Access forbidden: $message',
+              statusCode: statusCode,
+              type: ApiErrorType.forbidden,
+            );
           case 404:
-            return ApiException('Not found: $message', statusCode);
+            return ApiException(
+              'Not found: $message',
+              statusCode: statusCode,
+              type: ApiErrorType.notFound,
+            );
           case 500:
-            return ApiException('Server error. Please try again later.', statusCode);
+          case 502:
+          case 503:
+          case 504:
+            return ApiException(
+              'The server is currently unavailable. Please try again later.',
+              statusCode: statusCode,
+              type: ApiErrorType.server,
+            );
           default:
-            return ApiException(message, statusCode);
+            return ApiException(message, statusCode: statusCode);
         }
       }
       return ApiException(e.message ?? 'An unexpected error occurred');
     }
     return ApiException(e.toString());
+  }
+
+  /// Returns true when the underlying error indicates the host was reachable
+  /// but the connection was actively refused (i.e. the server is down), rather
+  /// than a missing network / DNS failure.
+  bool _isServerUnreachable(Object? error) {
+    if (error is SocketException) {
+      final osError = error.osError;
+      // Connection refused: macOS/iOS = 61, Android/Linux = 111.
+      if (osError != null && (osError.errorCode == 61 || osError.errorCode == 111)) {
+        return true;
+      }
+      final text = '${osError?.message ?? ''} ${error.message}'.toLowerCase();
+      return text.contains('connection refused') ||
+          text.contains('connection failed');
+    }
+    return false;
   }
 
   ApiService() {
@@ -237,12 +325,25 @@ class _LoggingInterceptor extends Interceptor {
 
 /// Interceptor for error handling
 class _ErrorInterceptor extends Interceptor {
+  /// Auth endpoints where a 401 means "invalid credentials" (a normal,
+  /// in-screen error) rather than "session expired". These must NOT trigger the
+  /// global logout/redirect, otherwise the login screen gets rebuilt instead of
+  /// showing the error.
+  bool _isAuthRequest(String path) {
+    return path.contains(AppConstants.userLoginEndpoint) ||
+        path.contains(AppConstants.userSignUpEndpoint) ||
+        path.contains(AppConstants.signOutEndpoint);
+  }
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Handle 401 Unauthorized - Clear auth and redirect to login
-    if (err.response?.statusCode == 401) {
+    // Handle 401 Unauthorized - session expired: clear auth and redirect to
+    // login. Skipped for auth requests (e.g. wrong credentials during sign in),
+    // which are surfaced as a normal error on the current screen.
+    if (err.response?.statusCode == 401 &&
+        !_isAuthRequest(err.requestOptions.path)) {
       StorageService.clearAuthData();
-      
+
       final context = navigatorKey.currentContext;
       if (context != null) {
         Navigator.of(context).pushAndRemoveUntil(

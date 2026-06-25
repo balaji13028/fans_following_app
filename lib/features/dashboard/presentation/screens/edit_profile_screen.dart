@@ -101,7 +101,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         isoDob = date.toIso8601String();
       }
 
-      await ref.read(authNotifierProvider.notifier).updateProfile({
+      final success = await ref.read(authNotifierProvider.notifier).updateProfile({
         'name': _nameController.text,
         'dob': isoDob,
         'facebookId': _fbController.text,
@@ -112,7 +112,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'email': _emailController.text,
       });
 
-      if (mounted) {
+      // Failures are surfaced to the user via the ref.listen on state.error.
+      if (mounted && success) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -122,7 +123,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         );
       }
     } catch (e) {
-      // Error is handled by ref.listen
+      // Unexpected errors are surfaced via the ref.listen on state.error.
     }
   }
 

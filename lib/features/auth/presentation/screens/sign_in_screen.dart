@@ -37,42 +37,73 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     super.dispose();
   }
 
-  void _handleSignIn() {
-    if (_formKey.currentState!.validate()) {
-      final mobileNumber =
-          '+${_selectedCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
-      final password = _passwordController.text;
+  Future<void> _handleSignIn() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      // Password based login
-      ref
-          .read(authNotifierProvider.notifier)
-          .userLogin(mobileNumber: mobileNumber, password: password);
+    final mobileNumber =
+        '+${_selectedCountry.phoneCode}${_mobileController.text.trim().replaceAll(' ', '')}';
+    final password = _passwordController.text;
+
+    // Password based login. Only navigate on success; on failure we stay on
+    // this screen and surface the error message to the user.
+    final success = await ref
+        .read(authNotifierProvider.notifier)
+        .userLogin(mobileNumber: mobileNumber, password: password);
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        (route) => false,
+      );
+    } else {
+      final error = ref.read(authNotifierProvider).error;
+      _showErrorSnackBar(error ?? 'Login failed. Please try again.');
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    // Server/connectivity failures show a warning-style bar with an icon.
+    final isServerIssue =
+        message.contains('server may be down') ||
+        message.contains('server is currently unavailable') ||
+        message.contains('taking too long') ||
+        message.contains('No internet connection');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isServerIssue
+                  ? Icons.cloud_off_rounded
+                  : Icons.error_outline_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: isServerIssue ? AppColors.warning : AppColors.error,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authNotifierProvider, (previous, next) {
-      if (next.error != null && next.error != previous?.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${next.error}'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.error,
-          ),
-        );
-      } else if (next.isAuthenticated && previous?.isAuthenticated != true) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-          (route) => false,
-        );
-      }
-    });
-
     final isLoading = ref.watch(authNotifierProvider).isLoading;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
