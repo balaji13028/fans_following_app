@@ -175,6 +175,17 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     loadMorePosts();
   }
 
+  bool? _getCurrentIsLiked(String id, String type) {
+    if (type == 'event') {
+      final index = state.events.indexWhere((e) => e.id == id);
+      if (index != -1) return state.events[index].isLiked;
+    } else {
+      final index = state.posts.indexWhere((p) => p.id == id);
+      if (index != -1) return state.posts[index].isLiked;
+    }
+    return null;
+  }
+
   void updateLikeLocal(String id, String type, bool isLiked) {
     if (type == 'event') {
       final index = state.events.indexWhere((e) => e.id == id);
@@ -202,12 +213,26 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   }
 
   Future<void> toggleLike(String id, String type) async {
+    final previousIsLiked = _getCurrentIsLiked(id, type);
+    if (previousIsLiked == null) return;
+
+    final optimisticIsLiked = !previousIsLiked;
+    updateLikeLocal(id, type, optimisticIsLiked);
+    _ref
+        .read(feedNotifierProvider.notifier)
+        .updateLikeLocal(id, type, optimisticIsLiked);
+
     try {
       final isLiked = await _homeService.toggleLike(id, type);
-      updateLikeLocal(id, type, isLiked);
-      _ref.read(feedNotifierProvider.notifier).updateLikeLocal(id, type, isLiked);
+      if (isLiked != optimisticIsLiked) {
+        updateLikeLocal(id, type, isLiked);
+        _ref.read(feedNotifierProvider.notifier).updateLikeLocal(id, type, isLiked);
+      }
     } catch (e) {
-      // Handle error
+      updateLikeLocal(id, type, previousIsLiked);
+      _ref
+          .read(feedNotifierProvider.notifier)
+          .updateLikeLocal(id, type, previousIsLiked);
     }
   }
 }
@@ -344,6 +369,18 @@ class FeedNotifier extends StateNotifier<FeedState> {
     loadFeed();
   }
 
+  bool? _getCurrentIsLiked(String id, String type) {
+    for (final item in state.items) {
+      if (type == 'event' && item is EventModel && item.id == id) {
+        return item.isLiked;
+      }
+      if (type == 'post' && item is PostModel && item.id == id) {
+        return item.isLiked;
+      }
+    }
+    return null;
+  }
+
   void updateLikeLocal(String id, String type, bool isLiked) {
     final index = state.items.indexWhere((item) {
       if (type == 'event' && item is EventModel) return item.id == id;
@@ -370,12 +407,28 @@ class FeedNotifier extends StateNotifier<FeedState> {
   }
 
   Future<void> toggleLike(String id, String type) async {
+    final previousIsLiked = _getCurrentIsLiked(id, type);
+    if (previousIsLiked == null) return;
+
+    final optimisticIsLiked = !previousIsLiked;
+    updateLikeLocal(id, type, optimisticIsLiked);
+    _ref
+        .read(dashboardNotifierProvider.notifier)
+        .updateLikeLocal(id, type, optimisticIsLiked);
+
     try {
       final isLiked = await _homeService.toggleLike(id, type);
-      updateLikeLocal(id, type, isLiked);
-      _ref.read(dashboardNotifierProvider.notifier).updateLikeLocal(id, type, isLiked);
+      if (isLiked != optimisticIsLiked) {
+        updateLikeLocal(id, type, isLiked);
+        _ref
+            .read(dashboardNotifierProvider.notifier)
+            .updateLikeLocal(id, type, isLiked);
+      }
     } catch (e) {
-      // Handle error
+      updateLikeLocal(id, type, previousIsLiked);
+      _ref
+          .read(dashboardNotifierProvider.notifier)
+          .updateLikeLocal(id, type, previousIsLiked);
     }
   }
 }

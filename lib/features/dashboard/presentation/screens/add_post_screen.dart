@@ -62,7 +62,7 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
   @override
   Widget build(BuildContext context) {
     final addPostState = ref.watch(addPostProvider);
-    final _isLoading = addPostState.isLoading;
+    final isLoading = addPostState.isLoading;
 
     ref.listen<AddPostState>(addPostProvider, (previous, next) {
       if (next.error != null && next.error != previous?.error) {
@@ -171,14 +171,14 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submitPost,
+                    onPressed: isLoading ? null : _submitPost,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: _isLoading
+                    child: isLoading
                         ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : const Text('Submit', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),

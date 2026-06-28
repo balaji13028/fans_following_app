@@ -302,7 +302,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "BUILD_LINK=\"${PROJECT_DIR}/../build\"\nBUILD_TARGET=\"/tmp/fans_following_app_build\"\nif [ ! -L \"$BUILD_LINK\" ]; then\n  mkdir -p \"$BUILD_TARGET\"\n  rm -rf \"$BUILD_LINK\"\n  ln -sf \"$BUILD_TARGET\" \"$BUILD_LINK\"\nfi\n/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
+			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
 		};
 		9C6A79FD4C9000AA8FC964FC /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

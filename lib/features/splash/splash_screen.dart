@@ -1,9 +1,7 @@
 import 'package:aa_fans/features/on_boarding/on_boarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../auth/presentation/screens/sign_in_screen.dart';
 import '../dashboard/presentation/screens/dashboard_screen.dart';
-import '../../core/services/storage_service.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {

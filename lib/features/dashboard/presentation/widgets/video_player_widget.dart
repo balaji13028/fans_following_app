@@ -126,7 +126,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           playedColor: Colors.orange,
           handleColor: Colors.orange,
           backgroundColor: Colors.grey[800]!,
-          bufferedColor: Colors.white.withOpacity(0.3),
+          bufferedColor: Colors.white.withValues(alpha: 0.3),
         ),
       );
 
