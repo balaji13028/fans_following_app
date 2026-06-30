@@ -9,7 +9,7 @@ class AppConstants {
 
   // API Endpoints
   // Set to true to point at the production API instead of the local dev server.
-  static const bool useProduction = false;
+  static const bool useProduction = true;
   static const String productionBaseUrl = 'https://api.aafansassociation.com';
   static const int localPort = 4000;
 

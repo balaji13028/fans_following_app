@@ -10,6 +10,7 @@ import '../../../../core/utils/offline_snackbar.dart';
 import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../feed/presentation/screens/event_detail_screen.dart';
 import '../../../feed/presentation/screens/post_detail_screen.dart';
+import '../widgets/video_player_widget.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -260,6 +261,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                           hashtags: item.tags.map((t) => '#$t').toList(),
                           description: item.description,
                           imageUrl: item.imageUrl,
+                          videoUrl: item.videoUrl,
                           likesCount: item.likesCount,
                           createdAt: item.postedOn,
                           isLiked: item.isLiked,
@@ -284,6 +286,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     required List<String> hashtags,
     required String description,
     String? imageUrl,
+    String? videoUrl,
     required int likesCount,
     required DateTime createdAt,
     required bool isLiked,
@@ -325,7 +328,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               height: 1.4,
             ),
           ),
-          if (imageUrl != null) ...[
+          if (videoUrl != null) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: VideoPlayerWidget(videoUrl: videoUrl),
+            ),
+          ] else if (imageUrl != null) ...[
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),

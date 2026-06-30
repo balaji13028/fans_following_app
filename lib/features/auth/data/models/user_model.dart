@@ -1,5 +1,3 @@
-import '../../../../core/constants/app_constants.dart';
-
 class UserModel {
   final String id;
   final String? email;
@@ -75,10 +73,8 @@ class UserModel {
     if (path.startsWith('http://') || path.startsWith('https://')) {
       return path;
     }
-    final baseUrl = AppConstants.baseUrl.endsWith('/')
-        ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
-        : AppConstants.baseUrl;
-    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return '$baseUrl/$cleanPath';
+    // S3 object keys (e.g. profiles/abc.jpg) must be presigned by the API.
+    // Prepending the API base URL produces a broken link that never loads.
+    return null;
   }
 }

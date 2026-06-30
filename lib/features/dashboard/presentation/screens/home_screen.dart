@@ -33,6 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(authNotifierProvider.notifier).refreshUser();
       final state = ref.read(dashboardNotifierProvider);
       if (state.events.isEmpty && state.posts.isEmpty) {
         ref.read(dashboardNotifierProvider.notifier).loadDashboard();

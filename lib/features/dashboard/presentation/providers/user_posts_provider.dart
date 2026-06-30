@@ -117,8 +117,9 @@ class UserPostsNotifier extends StateNotifier<UserPostsState> {
         page: page,
         limit: AppConstants.defaultPageSize,
       );
-      final items = (data['items'] as List)
-          .map((json) => PostModel.fromJson(json))
+      final rawItems = data['items'];
+      final items = (rawItems is List ? rawItems : const <dynamic>[])
+          .map((json) => PostModel.fromJson(json as Map<String, dynamic>))
           .toList();
 
       state = state.copyWith(

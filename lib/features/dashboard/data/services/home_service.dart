@@ -176,6 +176,41 @@ class HomeService {
     }
   }
 
+  /// Normalizes `/mobile/my-posts` across API versions:
+  /// - current: `{ items, page, limit, total, hasMore }`
+  /// - legacy production: `{ posts: [...] }` (no pagination)
+  Map<String, dynamic> _normalizeMyPostsResponse(
+    Map<String, dynamic> data, {
+    required int page,
+    required int limit,
+  }) {
+    if (data['items'] is List) {
+      return data;
+    }
+
+    final legacyPosts = data['posts'];
+    if (legacyPosts is List) {
+      final total = legacyPosts.length;
+      final skip = (page - 1) * limit;
+      final items = legacyPosts.skip(skip).take(limit).toList();
+      return {
+        'items': items,
+        'page': page,
+        'limit': limit,
+        'total': total,
+        'hasMore': skip + limit < total,
+      };
+    }
+
+    return {
+      'items': <dynamic>[],
+      'page': page,
+      'limit': limit,
+      'total': 0,
+      'hasMore': false,
+    };
+  }
+
   Future<Map<String, dynamic>> getMyPosts({
     int page = 1,
     int limit = AppConstants.defaultPageSize,
@@ -186,7 +221,8 @@ class HomeService {
         queryParameters: {'page': page, 'limit': limit},
       );
       if (response.statusCode == 200) {
-        return response.data as Map<String, dynamic>;
+        final data = response.data as Map<String, dynamic>;
+        return _normalizeMyPostsResponse(data, page: page, limit: limit);
       }
       throw Exception('Failed to load my posts');
     } catch (e) {
