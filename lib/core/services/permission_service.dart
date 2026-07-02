@@ -4,6 +4,12 @@ import 'package:permission_handler/permission_handler.dart';
 
 /// Service to handle app permissions robustly across iOS and Android.
 class PermissionService {
+  /// Request location permission (prompted at app startup).
+  static Future<bool> requestLocationPermission() async {
+    final status = await Permission.locationWhenInUse.request();
+    return status.isGranted;
+  }
+
   /// Request photo library permission robustly for both iOS and Android.
   /// Handles iOS 14+ limited access gracefully.
   static Future<bool> requestPhotoPermission(BuildContext context) async {
@@ -42,21 +48,6 @@ class PermissionService {
       }
       return false;
     }
-  }
-
-  /// Request camera permission
-  static Future<bool> requestCameraPermission(BuildContext context) async {
-    final status = await Permission.camera.request();
-
-    if (status.isGranted) {
-      return true;
-    }
-
-    if (status.isPermanentlyDenied) {
-      if (context.mounted) _showSettingsDialog(context, 'Camera');
-    }
-
-    return false;
   }
 
   /// Shows a dialog directing the user to app settings

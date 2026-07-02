@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'core/widgets/connectivity_wrapper.dart';
 import 'features/splash/splash_screen.dart';
 import 'core/services/push_notification_service.dart';
+import 'core/services/permission_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -29,6 +30,7 @@ void main() async {
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await PushNotificationService.init();
+  await PermissionService.requestLocationPermission();
 
   runApp(const ProviderScope(child: MyApp()));
 }

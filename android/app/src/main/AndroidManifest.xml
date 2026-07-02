@@ -1,22 +1,23 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 <!-- Network -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Storage permissions for Android 12 and below (API 32 and below) -->
+    <!-- Gallery: read photos on Android 12 and below (API 32 and below) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
 
-    <!-- Media permissions for Android 13+ (API 33+) -->
+    <!-- Gallery: read photos on Android 13+ (API 33+) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
-
-    <!-- Camera & Microphone -->
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <!-- Location -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- Strip permissions not used by this app (gallery-only image picking) -->
+    <uses-permission android:name="android.permission.CAMERA" tools:node="remove"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
 
     <application
         android:label="AA Fans"
