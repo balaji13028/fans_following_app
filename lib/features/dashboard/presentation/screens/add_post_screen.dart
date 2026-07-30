@@ -17,14 +17,19 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  
+  bool _isPickingImage = false;
+
   File? _selectedImage;
 
   Future<void> _pickImage() async {
-    final hasPermission = await PermissionService.requestPhotoPermission(context);
-    if (!hasPermission) return;
+    if (_isPickingImage) return;
+    _isPickingImage = true;
 
     try {
+      final hasPermission =
+          await PermissionService.requestPhotoPermission(context);
+      if (!hasPermission) return;
+
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1080,
@@ -38,6 +43,8 @@ class _AddPostScreenState extends ConsumerState<AddPostScreen> {
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
+    } finally {
+      _isPickingImage = false;
     }
   }
 

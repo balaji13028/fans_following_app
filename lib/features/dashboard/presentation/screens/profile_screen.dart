@@ -22,6 +22,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final ImagePicker _picker = ImagePicker();
+  bool _isPickingImage = false;
 
   @override
   void initState() {
@@ -33,12 +34,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _pickAndUploadImage() async {
-    final hasPermission = await PermissionService.requestPhotoPermission(
-      context,
-    );
-    if (!hasPermission) return;
+    if (_isPickingImage) return;
+    _isPickingImage = true;
 
     try {
+      final hasPermission = await PermissionService.requestPhotoPermission(
+        context,
+      );
+      if (!hasPermission) return;
+
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 70,
@@ -108,6 +112,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         );
       }
+    } finally {
+      _isPickingImage = false;
     }
   }
 
